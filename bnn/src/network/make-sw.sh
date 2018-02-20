@@ -80,8 +80,13 @@ HLSLIB=$BNNLIB/hls
 HLSTOP=$BNN_PATH/$NETWORK/hw
 DRIVER_PATH=$BNNLIB/driver
 
-SRCS_HOSTLIB=$HOSTLIB/*.cpp
-SRCS_HLSLIB=$HLSLIB/*.cpp
+if [ $NETWORK = "add-double-pynq" ]; then
+  SRCS_HOSTLIB=$HOSTLIB/*-double.cpp
+  SRCS_HLSLIB=$HLSLIB/*-double.cpp
+else
+  SRCS_HOSTLIB=$HOSTLIB/*.cpp
+  SRCS_HLSLIB=$HLSLIB/*.cpp
+fi
 SRCS_HLSTOP=$HLSTOP/top.cpp
 SRCS_HOST=$BNN_PATH/$NETWORK/sw/main.cpp
 
@@ -101,6 +106,6 @@ fi
 
 echo "Output at $OUTPUT_FILE"
 
-if [ $NETWORK = "add-pynq" ]; then
+if [ $NETWORK = "add-pynq" -o $NETWORK = "add-double-pynq" ]; then
   cp output/sw/python_*-$NETWORK.so ../../libraries/
 fi

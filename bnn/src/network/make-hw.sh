@@ -151,7 +151,7 @@ fi
 
 echo "Done!"
 
-if [ $TARGET_NAME = "add-pynq-pynq" ]; then
+if [ $TARGET_NAME = "add-pynq-pynq" -o $TARGET_NAME = "add-double-pynq-pynq" ]; then
   cp output/bitstream/$TARGET_NAME.* ../../bitstreams/
 fi
 
