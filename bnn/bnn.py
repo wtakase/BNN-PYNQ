@@ -43,6 +43,7 @@ RUNTIME_HW = "python_hw"
 RUNTIME_SW = "python_sw"
 NETWORK_CNV = "cnv-pynq"
 NETWORK_LFC = "lfc-pynq"
+NETWORK_ADD = "add-pynq"
 
 _ffi = cffi.FFI()
 
@@ -51,6 +52,14 @@ void load_parameters(const char* path);
 unsigned int inference(const char* path, unsigned int results[64], int number_class, float *usecPerImage);
 unsigned int* inference_multiple(const char* path, int number_class, int *image_number, float *usecPerImage, unsigned int enable_detail);
 void free_results(unsigned int * result);
+void deinit();
+"""
+)
+
+_ffi_add = cffi.FFI()
+_ffi_add.cdef("""
+unsigned int *add(unsigned int in1, unsigned int in2, float *usecPerMul);
+void free_results(unsigned int *result);
 void deinit();
 """
 )
@@ -71,8 +80,12 @@ class PynqBNN:
                     raise RuntimeError("Incorrect Overlay loaded")
         dllname = "{0}-{1}.so".format(runtime, network)
         if dllname not in _libraries:
-            _libraries[dllname] = _ffi.dlopen(
-		os.path.join(BNN_LIB_DIR, dllname))
+            if network == NETWORK_ADD:
+                _libraries[dllname] = _ffi_add.dlopen(
+                    os.path.join(BNN_LIB_DIR, dllname))
+            else:
+                _libraries[dllname] = _ffi.dlopen(
+		    os.path.join(BNN_LIB_DIR, dllname))
         self.interface = _libraries[dllname]
         self.num_classes = 0
         
@@ -132,7 +145,16 @@ class PynqBNN:
 
     def class_name(self, index):
         return self.classes[index]
-    
+
+    def add(self, in1, in2):
+        usecpermult = _ffi_add.new("float *")
+        result_ptr = self.interface.add(in1, in2, usecpermult)
+        print("bnn.add(): Addition took %.2f microseconds" % (usecpermult[0]))
+        result_buffer = _ffi_add.buffer(result_ptr)
+        result_array = np.copy(np.frombuffer(result_buffer, dtype=np.uint32))
+        self.interface.free_results(result_ptr)
+        return result_array
+
 
 class CnvClassifier:
     def __init__(self, params, runtime=RUNTIME_HW):

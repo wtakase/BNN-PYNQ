@@ -307,6 +307,33 @@ std::vector<unsigned int> testPrebuiltCIFAR10_multiple_images(std::vector<tiny_c
   return (results);
 }
 
+template<unsigned int dummy>
+std::vector<unsigned int> addTwoValues(const unsigned int in1, const unsigned int in2, float &usecPerImage) {
+  const unsigned int count = 1;
+  std::vector<unsigned int> results;
+  cout << "addTwoValues(): in1: " << in1 << ", in2: " << in2 << endl;
+  ExtMemWord *packedIns = new ExtMemWord[2];
+  ExtMemWord *packedOut = new ExtMemWord[1];
+  packedIns[0] = in1;
+  packedIns[1] = in2;
+  cout << "addTwoValues(): packedIns[0]: " << packedIns[0] << ", packedIns[1]: " << packedIns[1] << endl;
+
+  auto t1 = chrono::high_resolution_clock::now();
+  // call the accelerator in compute mode
+  BlackBoxJam((ap_uint<64> *)packedIns, (ap_uint<64> *)packedOut, false, 0, 0, 0, 0, 1);
+  auto t2 = chrono::high_resolution_clock::now();
+
+  cout << "addTwoValues(): packedOut[0]: " << packedOut[0] << endl;
+  results.push_back((unsigned int)packedOut[0]);
+
+  auto duration = chrono::duration_cast<chrono::microseconds>( t2 - t1 ).count();
+  usecPerImage = (float)duration / (count);
+  cout << "addTwoValues(): Addition took " << duration << " microseconds" << endl;
+  delete [] packedIns;
+  delete [] packedOut;
+  return (results);
+}
+
 #elif defined(OFFLOAD) && !defined(RAWHLS)
 #include "platform.hpp"
 #include <vector>
@@ -531,6 +558,38 @@ std::vector<unsigned int> testPrebuiltCIFAR10_multiple_images(std::vector<tiny_c
   return (results);
  }
 
+template<unsigned int dummy>
+std::vector<unsigned int> addTwoValues(const unsigned int in1, const unsigned int in2, float &usecPerImage) {
+  const unsigned int count = 1;
+  std::vector<unsigned int> results;
+  cout << "addTwoValues(): in1: " << in1 << ", in2: " << in2 << endl;
+  ExtMemWord *packedIns = new ExtMemWord[2];
+  ExtMemWord *packedOut = new ExtMemWord[1];
+  packedIns[0] = in1;
+  packedIns[1] = in2;
+  cout << "addTwoValues(): packedIns[0]: " << packedIns[0] << ", packedIns[1]: " << packedIns[1] << endl;
+
+  // copy inputs to accelerator
+  thePlatform->copyBufferHostToAccel((void *)packedIns, accelBufIn, sizeof(ExtMemWord)*count*2);
+  thePlatform->writeJamRegAddr(0x54, count);
+
+  auto t1 = chrono::high_resolution_clock::now();
+  ExecAccel();
+  auto t2 = chrono::high_resolution_clock::now();
+
+  // copy results back to host
+  thePlatform->copyBufferAccelToHost(accelBufOut, (void *)packedOut, sizeof(ExtMemWord)*count*1);
+
+  cout << "addTwoValues(): packedOut[0]: " << packedOut[0] << endl;
+  results.push_back((unsigned int)packedOut[0]);
+
+  auto duration = chrono::duration_cast<chrono::microseconds>( t2 - t1 ).count();
+  usecPerImage = (float)duration / (count);
+  cout << "addTwoValues(): Addition took " << duration << " microseconds" << endl;
+  delete [] packedIns;
+  delete [] packedOut;
+  return (results);
+}
 
 #endif
 

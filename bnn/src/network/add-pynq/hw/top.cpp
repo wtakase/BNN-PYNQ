@@ -32,29 +32,45 @@
 /******************************************************************************
  *
  *
- * @file bnn-library.h
+ * @file top.cpp
  *
- * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
+ * HLS Description of the ADD BNN, with axi-lite based parameter loading (DoMemInit) 
+ * and  dataflow architecture of the image inference (DoCompute)
  * 
  *
  *****************************************************************************/
-
-#include <hls_stream.h>
-#include "ap_int.h"
+#include "bnn-library.h"
 #include <iostream>
-#include <string>
-
-using namespace hls;
 using namespace std;
 
-#define CASSERT_DATAFLOW(x) ;
+void DoCompute(ap_uint<64> * in, ap_uint<64> * out, const unsigned int numReps) {
+#pragma HLS DATAFLOW
+  cout << "DoCompute(): in[0]: " << in[0] << ", in[1]: " << in[1] << endl;
+  stream<ap_uint<64>> memInStrm("DoCompute.memInStrm");
+  stream<ap_uint<64>> memOutStrm("DoCompute.memOutStrm");
+  Mem2Stream_Batch<64, 16>(in, memInStrm, numReps);
+  StreamingAddTwoValues_Batch<0>(memInStrm, memOutStrm, numReps);
+  Stream2Mem_Batch<64, 8>(memOutStrm, out, numReps);
+  cout << "DoCompute(): out[0]: " << out[0] << endl;
+}
 
-#include "streamtools.h"
-#include "dma.h"
-#include "matrixvector.h"
-#include "slidingwindow.h"
-#include "maxpool.h"
-#include "fclayer.h"
-#include "convlayer.h"
-#include "add.h"
+void BlackBoxJam(ap_uint<64> * in, ap_uint<64> * out, bool doInit,
+		unsigned int targetLayer, unsigned int targetMem,
+		unsigned int targetInd, ap_uint<64> val, unsigned int numReps) {
+// pragmas for MLBP jam interface
+// signals to be mapped to the AXI Lite slave port
+#pragma HLS INTERFACE s_axilite port=return bundle=control
+#pragma HLS INTERFACE s_axilite port=doInit bundle=control
+#pragma HLS INTERFACE s_axilite port=targetLayer bundle=control
+#pragma HLS INTERFACE s_axilite port=targetMem bundle=control
+#pragma HLS INTERFACE s_axilite port=targetInd bundle=control
+#pragma HLS INTERFACE s_axilite port=val bundle=control
+#pragma HLS INTERFACE s_axilite port=numReps bundle=control
+// signals to be mapped to the AXI master port (hostmem)
+#pragma HLS INTERFACE m_axi offset=slave port=in bundle=hostmem depth=256
+#pragma HLS INTERFACE s_axilite port=in bundle=control
+#pragma HLS INTERFACE m_axi offset=slave port=out bundle=hostmem depth=256
+#pragma HLS INTERFACE s_axilite port=out bundle=control
+
+  DoCompute(in, out, numReps);
+}

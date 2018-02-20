@@ -32,29 +32,26 @@
 /******************************************************************************
  *
  *
- * @file bnn-library.h
+ * @file add.h
  *
  * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
+ * This file implement the BNN add layer 
  * 
  *
  *****************************************************************************/
 
-#include <hls_stream.h>
-#include "ap_int.h"
-#include <iostream>
-#include <string>
+template<unsigned int dummy>
+void StreamingAddTwoValues(stream<ap_uint<64>> & in,
+		stream<ap_uint<64>> & out) {
+        ap_uint<64> in1 = in.read();
+        ap_uint<64> in2 = in.read();
+        out.write(in1 + in2);
+}
 
-using namespace hls;
-using namespace std;
-
-#define CASSERT_DATAFLOW(x) ;
-
-#include "streamtools.h"
-#include "dma.h"
-#include "matrixvector.h"
-#include "slidingwindow.h"
-#include "maxpool.h"
-#include "fclayer.h"
-#include "convlayer.h"
-#include "add.h"
+template<unsigned int dummy>
+void StreamingAddTwoValues_Batch(stream<ap_uint<64>> & in,
+		stream<ap_uint<64> > & out, unsigned int numReps) {
+	for (unsigned int rep = 0; rep < numReps; rep++) {
+		StreamingAddTwoValues<0>(in, out);
+	}
+}
