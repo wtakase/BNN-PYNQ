@@ -32,29 +32,40 @@
 /******************************************************************************
  *
  *
- * @file bnn-library.h
+ * @file main_python.c
  *
- * Library of templated HLS functions for BNN deployment. 
- * Include this file in the network top funtion.
+ * Host code for BNN, overlay ADD-Pynq, to manage parameter loading, 
+ * classification (inference) of single and multiple images
  * 
  *
  *****************************************************************************/
-
-#include <hls_stream.h>
-#include "ap_int.h"
 #include <iostream>
-#include <string>
+#include <string.h>
+#include "foldedmv-offload.h"
 
-using namespace hls;
 using namespace std;
 
-#define CASSERT_DATAFLOW(x) ;
 
-#include "streamtools.h"
-#include "dma.h"
-#include "matrixvector.h"
-#include "slidingwindow.h"
-#include "maxpool.h"
-#include "fclayer.h"
-#include "convlayer.h"
-#include "add.h"
+extern "C" unsigned int* add(unsigned int in1, unsigned int in2, float *usecPerImage)
+{
+  FoldedMVInit("add-pynq");
+  std::vector<unsigned int> add_result;
+  float usecPerImage_int;
+  cout << "add(): in1: " << in1 << ", in2: " << in2 << endl;
+  add_result = addTwoValues<0>(in1, in2, usecPerImage_int);
+  unsigned int *result = new unsigned int [1];
+  std::copy(add_result.begin(),add_result.end(), result);
+  if (usecPerImage) {
+    *usecPerImage = usecPerImage_int;
+  }
+  return result;
+}
+
+extern "C" void free_results(unsigned int * result)
+{
+  delete[] result;
+}
+
+extern "C" void deinit() {
+  FoldedMVDeinit();
+}

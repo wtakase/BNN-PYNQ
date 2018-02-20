@@ -151,4 +151,8 @@ fi
 
 echo "Done!"
 
+if [ $TARGET_NAME = "add-pynq-pynq" ]; then
+  cp output/bitstream/$TARGET_NAME.* ../../bitstreams/
+fi
+
 exit 0
