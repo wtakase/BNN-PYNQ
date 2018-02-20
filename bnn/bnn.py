@@ -44,6 +44,7 @@ RUNTIME_SW = "python_sw"
 NETWORK_CNV = "cnv-pynq"
 NETWORK_LFC = "lfc-pynq"
 NETWORK_ADD = "add-pynq"
+NETWORK_ADD_DOUBLE = "add-double-pynq"
 
 _ffi = cffi.FFI()
 
@@ -60,6 +61,14 @@ _ffi_add = cffi.FFI()
 _ffi_add.cdef("""
 unsigned int *add(unsigned int in1, unsigned int in2, float *usecPerMul);
 void free_results(unsigned int *result);
+void deinit();
+"""
+)
+
+_ffi_add_double = cffi.FFI()
+_ffi_add_double.cdef("""
+double *add_double(double in1, double in2, float *usecPerMul);
+void free_results(double *result);
 void deinit();
 """
 )
@@ -82,6 +91,9 @@ class PynqBNN:
         if dllname not in _libraries:
             if network == NETWORK_ADD:
                 _libraries[dllname] = _ffi_add.dlopen(
+                    os.path.join(BNN_LIB_DIR, dllname))
+            elif network == NETWORK_ADD_DOUBLE:
+                _libraries[dllname] = _ffi_add_double.dlopen(
                     os.path.join(BNN_LIB_DIR, dllname))
             else:
                 _libraries[dllname] = _ffi.dlopen(
@@ -152,6 +164,15 @@ class PynqBNN:
         print("bnn.add(): Addition took %.2f microseconds" % (usecpermult[0]))
         result_buffer = _ffi_add.buffer(result_ptr)
         result_array = np.copy(np.frombuffer(result_buffer, dtype=np.uint32))
+        self.interface.free_results(result_ptr)
+        return result_array
+
+    def add_double(self, in1, in2):
+        usecpermult = _ffi_add_double.new("float *")
+        result_ptr = self.interface.add_double(in1, in2, usecpermult)
+        print("bnn.add_double(): Addition took %.2f microseconds" % (usecpermult[0]))
+        result_buffer = _ffi_add_double.buffer(result_ptr)
+        result_array = np.copy(np.frombuffer(result_buffer, dtype=np.float64))
         self.interface.free_results(result_ptr)
         return result_array
 
