@@ -78,6 +78,9 @@ HLS_SRC_DIR="$BNN_PATH/$NETWORK/hw"
 HLS_OUT_DIR="$BNN_PATH/output/hls-syn/$NETWORK"
 
 HLS_SCRIPT=$BNN_PATH/hls-syn.tcl
+if [ "$NETWORK-$PLATFORM" = "fc-pynq-pynq" ]; then
+  HLS_SCRIPT=$BNN_PATH/hls-syn-fc.tcl
+fi
 HLS_IP_REPO="$HLS_OUT_DIR/sol1/impl/ip"
 
 VIVADO_HLS_LOG="$BNN_PATH/output/hls-syn/vivado_hls.log"
@@ -151,7 +154,7 @@ fi
 
 echo "Done!"
 
-if [ $TARGET_NAME = "add-pynq-pynq" -o $TARGET_NAME = "add-double-pynq-pynq" ]; then
+if [ $TARGET_NAME = "add-pynq-pynq" -o $TARGET_NAME = "add-double-pynq-pynq" -o $TARGET_NAME = "fc-pynq-pynq" ]; then
   cp output/bitstream/$TARGET_NAME.* ../../bitstreams/
 fi
 

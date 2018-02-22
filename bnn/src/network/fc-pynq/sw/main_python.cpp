@@ -32,48 +32,55 @@
 /******************************************************************************
  *
  *
- * @file add-double.h
+ * @file main_python.c
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file implement the BNN add layer 
+ * Host code for BNN, overlay FC-Pynq, to manage parameter loading, 
+ * classification (training) of single and multiple images
  * 
  *
  *****************************************************************************/
+#include <iostream>
+#include <string.h>
+#include "foldedmv-offload-fc.h"
 
-namespace bnn_double
+
+extern "C" double *train(const char *path, unsigned int imageNum, float *usecPerImage)
 {
+  std::string trainLabelPath(path);
+  trainLabelPath.append("/train-labels-idx1-ubyte");
+  std::string trainImagePath(path);
+  trainImagePath.append("/train-images-idx3-ubyte");
+  std::vector<tiny_cnn::label_t> trainLabels;
+  std::vector<tiny_cnn::vec_t> trainImages;
+  tiny_cnn::parse_mnist_labels(trainLabelPath, &trainLabels);
+  tiny_cnn::parse_mnist_images(trainImagePath, &trainImages, 0.0, 1.0, 0, 0);
 
-template<unsigned int dummy>
-void StreamingAddTwoValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double in1 = in.read();
-  double in2 = in.read();
-  out.write(in1 + in2);
-}
+  std::string testLabelPath(path);
+  testLabelPath.append("/t10k-labels-idx1-ubyte");
+  std::string testImagePath(path);
+  testImagePath.append("/t10k-images-idx3-ubyte");
+  std::vector<tiny_cnn::label_t> testLabels;
+  std::vector<tiny_cnn::vec_t> testImages;
+  tiny_cnn::parse_mnist_labels(testLabelPath, &testLabels);
+  tiny_cnn::parse_mnist_images(testImagePath, &testImages, 0.0, 1.0, 0, 0);
 
-template<unsigned int dummy>
-void StreamingAddTwoValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int i = 0; i < numReps; i++) {
-    StreamingAddTwoValues<0>(in, out);
+  bnn_fc::FoldedMVInit("fc-pynq");
+  std::vector<double> accuracyResult;
+  float usecPerImage_int;
+  accuracyResult = bnn_fc::trainMNIST<0>(trainImages, trainLabels, testImages, testLabels, imageNum, usecPerImage_int);
+  double *result = new double[12000];
+  std::copy(accuracyResult.begin(), accuracyResult.end(), result);
+  if (usecPerImage) {
+    *usecPerImage = usecPerImage_int;
   }
+  return result;
 }
 
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double sum = 0.0;
-  for (unsigned int i = 0; i < SIZE_PER_IMAGE - 1; i++) {
-    sum += in.read();
-  }
-  out.write(sum);
-  // Read a label
-  double label = in.read();
-  //out.write(label);
+extern "C" void free_results(double *result)
+{
+  delete[] result;
 }
 
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int rep = 0; rep < numReps; rep++) {
-    StreamingAddAllValues<SIZE_PER_IMAGE>(in, out);
-  }
+extern "C" void deinit() {
+  bnn_fc::FoldedMVDeinit();
 }
-
-} // namespace bnn_double

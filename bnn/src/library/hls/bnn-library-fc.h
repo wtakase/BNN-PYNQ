@@ -32,48 +32,26 @@
 /******************************************************************************
  *
  *
- * @file add-double.h
+ * @file bnn-library-fc.h
  *
  * Library of templated HLS functions for BNN deployment. 
- * This file implement the BNN add layer 
+ * Include this file in the network top funtion.
  * 
  *
  *****************************************************************************/
 
-namespace bnn_double
-{
+#include <hls_stream.h>
+#include <iostream>
+#include <string>
+#include "hls_half.h"
 
-template<unsigned int dummy>
-void StreamingAddTwoValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double in1 = in.read();
-  double in2 = in.read();
-  out.write(in1 + in2);
-}
+#define CASSERT_DATAFLOW(x) ;
 
-template<unsigned int dummy>
-void StreamingAddTwoValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int i = 0; i < numReps; i++) {
-    StreamingAddTwoValues<0>(in, out);
-  }
-}
-
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double sum = 0.0;
-  for (unsigned int i = 0; i < SIZE_PER_IMAGE - 1; i++) {
-    sum += in.read();
-  }
-  out.write(sum);
-  // Read a label
-  double label = in.read();
-  //out.write(label);
-}
-
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int rep = 0; rep < numReps; rep++) {
-    StreamingAddAllValues<SIZE_PER_IMAGE>(in, out);
-  }
-}
-
-} // namespace bnn_double
+#include "DlUtil.hpp"
+#include "DlAffine.hpp"
+#include "DlRelu.hpp"
+#include "DlSoftmaxWithLoss.hpp"
+#include "DlSgd.hpp"
+#include "DlTwoLayerNet.hpp"
+#include "fc.h"
+#include "dma-fc.h"

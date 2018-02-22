@@ -45,6 +45,9 @@ NETWORK_CNV = "cnv-pynq"
 NETWORK_LFC = "lfc-pynq"
 NETWORK_ADD = "add-pynq"
 NETWORK_ADD_DOUBLE = "add-double-pynq"
+NETWORK_FC = "fc-pynq"
+
+BATCH_SIZE = 40
 
 _ffi = cffi.FFI()
 
@@ -73,6 +76,14 @@ void deinit();
 """
 )
 
+_ffi_fc = cffi.FFI()
+_ffi_fc.cdef("""
+double *train(const char* path, unsigned int imageNum, float *usecPerMul);
+void free_results(double *result);
+void deinit();
+"""
+)
+
 _libraries = {}
 
 class PynqBNN:
@@ -94,6 +105,9 @@ class PynqBNN:
                     os.path.join(BNN_LIB_DIR, dllname))
             elif network == NETWORK_ADD_DOUBLE:
                 _libraries[dllname] = _ffi_add_double.dlopen(
+                    os.path.join(BNN_LIB_DIR, dllname))
+            elif network == NETWORK_FC:
+                _libraries[dllname] = _ffi_fc.dlopen(
                     os.path.join(BNN_LIB_DIR, dllname))
             else:
                 _libraries[dllname] = _ffi.dlopen(
@@ -172,6 +186,21 @@ class PynqBNN:
         result_ptr = self.interface.add_double(in1, in2, usecpermult)
         print("bnn.add_double(): Addition took %.2f microseconds" % (usecpermult[0]))
         result_buffer = _ffi_add_double.buffer(result_ptr)
+        result_array = np.copy(np.frombuffer(result_buffer, dtype=np.float64))
+        self.interface.free_results(result_ptr)
+        return result_array
+
+    def train(self, path="/home/xilinx/wtakase/mnist", image_num=BATCH_SIZE):
+        usecpermult = _ffi_fc.new("float *")
+        result_ptr = self.interface.train(path.encode(), image_num, usecpermult)
+        #print("bnn.train(): %d-images training took %.2f microseconds" % (image_num, usecpermult[0]))
+        if image_num <= BATCH_SIZE:
+            result_num = 1;
+        else:
+            result_num = int(image_num / BATCH_SIZE);
+            if image_num % BATCH_SIZE > 0:
+                result_num += 1
+        result_buffer = _ffi_fc.buffer(result_ptr, result_num * 8)
         result_array = np.copy(np.frombuffer(result_buffer, dtype=np.float64))
         self.interface.free_results(result_ptr)
         return result_array

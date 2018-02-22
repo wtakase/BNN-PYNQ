@@ -81,8 +81,11 @@ HLSTOP=$BNN_PATH/$NETWORK/hw
 DRIVER_PATH=$BNNLIB/driver
 
 if [ $NETWORK = "add-double-pynq" ]; then
-  SRCS_HOSTLIB=$HOSTLIB/*-double.cpp
-  SRCS_HLSLIB=$HLSLIB/*-double.cpp
+  SRCS_HOSTLIB="$HOSTLIB/*-double.cpp"
+  SRCS_HLSLIB="$HLSLIB/*-double.cpp"
+elif [ $NETWORK = "fc-pynq" ]; then
+  SRCS_HOSTLIB="$HOSTLIB/*-fc.cpp $HLSLIB/Dl*.cpp"
+  SRCS_HLSLIB="$HLSLIB/*-fc.cpp $HLSLIB/Dl*.cpp"
 else
   SRCS_HOSTLIB=$HOSTLIB/*.cpp
   SRCS_HLSLIB=$HLSLIB/*.cpp
@@ -101,11 +104,11 @@ if [[ ("$PLATFORM" == "python_sw") ]]; then
 elif [[ ("$PLATFORM" == "python_hw") ]]; then
   SRCS_HOST=$BNN_PATH/$NETWORK/sw/main_python.cpp
   SRCS_ALL="$DRIVER_PATH/platform-xlnk.cpp $SRCS_HOSTLIB $SRCS_HOST"
-  g++ -g -DOFFLOAD -std=c++11 -pthread -O3 -fPIC -shared $SRCS_ALL -I$PYNQ_XLNKUTILS -I$DRIVER_PATH -I$VIVADOHLS_INCLUDE_PATH -I$TINYCNN_PATH -I$HOSTLIB -I$HLSLIB -I$HLSTOP -o $OUTPUT_FILE.so -lsds_lib
+  g++ -g -DHLSHALF -DOFFLOAD -std=c++11 -pthread -O3 -fPIC -shared $SRCS_ALL -I$PYNQ_XLNKUTILS -I$DRIVER_PATH -I$VIVADOHLS_INCLUDE_PATH -I$TINYCNN_PATH -I$HOSTLIB -I$HLSLIB -I$HLSTOP -o $OUTPUT_FILE.so -lsds_lib
 fi
 
 echo "Output at $OUTPUT_FILE"
 
-if [ $NETWORK = "add-pynq" -o $NETWORK = "add-double-pynq" ]; then
+if [ $NETWORK = "add-pynq" -o $NETWORK = "add-double-pynq" -o $NETWORK = "fc-pynq" ]; then
   cp output/sw/python_*-$NETWORK.so ../../libraries/
 fi

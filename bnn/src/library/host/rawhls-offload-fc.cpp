@@ -32,48 +32,41 @@
 /******************************************************************************
  *
  *
- * @file add-double.h
+ * @file rawhls-offload-fc.h
  *
- * Library of templated HLS functions for BNN deployment. 
- * This file implement the BNN add layer 
+ * Library of functions for compatible execution of HLS source code (SW execution)
  * 
  *
  *****************************************************************************/
+#if defined(RAWHLS) && defined(OFFLOAD)
+#include "foldedmv-offload-fc.h"
+#include <string.h>
+#include <vector>
+#include <iostream>
 
-namespace bnn_double
+namespace bnn_fc
 {
 
-template<unsigned int dummy>
-void StreamingAddTwoValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double in1 = in.read();
-  double in2 = in.read();
-  out.write(in1 + in2);
-}
+ExtMemWord *bufIn, *bufOut;
 
-template<unsigned int dummy>
-void StreamingAddTwoValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int i = 0; i < numReps; i++) {
-    StreamingAddTwoValues<0>(in, out);
+void FoldedMVInit(const char * attachName) {
+  if (!bufIn) {
+    bufIn = new ExtMemWord[INPUT_BUF_ENTRIES];
+    if (!bufIn) throw "Failed to allocate host buffer";
+  }
+  if (!bufOut) {
+    bufOut = new ExtMemWord[OUTPUT_BUF_ENTRIES];
+    if (!bufOut) throw "Failed to allocate host buffer";
   }
 }
 
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues(hls::stream<double> & in, hls::stream<double> & out) {
-  double sum = 0.0;
-  for (unsigned int i = 0; i < SIZE_PER_IMAGE - 1; i++) {
-    sum += in.read();
-  }
-  out.write(sum);
-  // Read a label
-  double label = in.read();
-  //out.write(label);
+void FoldedMVDeinit() {
+  delete bufIn;
+  delete bufOut;
+  bufIn = 0;
+  bufOut = 0;
 }
 
-template<unsigned int SIZE_PER_IMAGE>
-void StreamingAddAllValues_Batch(hls::stream<double> & in, hls::stream<double> & out, unsigned int numReps) {
-  for (unsigned int rep = 0; rep < numReps; rep++) {
-    StreamingAddAllValues<SIZE_PER_IMAGE>(in, out);
-  }
-}
+} // namespace bnn_fc
 
-} // namespace bnn_double
+#endif
