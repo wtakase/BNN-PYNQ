@@ -11,6 +11,7 @@ public:
   ExtMemWord dx[BATCH_SIZE * SIZE];
   ExtMemWord loss;
   ExtMemWord *t;
+  MulMemWord mulBox;
 
   DlSoftmaxWithLoss();
 

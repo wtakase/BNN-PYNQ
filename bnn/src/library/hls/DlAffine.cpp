@@ -17,7 +17,8 @@ void DlAffine1::Forward(ExtMemWord x[BATCH_SIZE * IN_SIZE])
         if (k == 0) {
           out[i * OUT_SIZE + j] = b[j];
         }
-        out[i * OUT_SIZE + j] += x[i * IN_SIZE + k] * w[k * OUT_SIZE + j];
+        mulBox = (MulMemWord)x[i * IN_SIZE + k] * (MulMemWord)w[k * OUT_SIZE + j];
+        out[i * OUT_SIZE + j] += (ExtMemWord)mulBox;
       }
     }
   }
@@ -31,7 +32,8 @@ void DlAffine1::Backward(ExtMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dw[i * OUT_SIZE + j] = 0;
         }
-        dw[i * OUT_SIZE + j] += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
+        mulBox = (MulMemWord)x[k * IN_SIZE + i] * (MulMemWord)dout[k * OUT_SIZE + j];
+        dw[i * OUT_SIZE + j] += (ExtMemWord)mulBox;
         if (i == 0) {
           if (k == 0) {
             db[j] = 0;
@@ -60,7 +62,8 @@ void DlAffine2::Forward(ExtMemWord x[BATCH_SIZE * IN_SIZE])
         if (k == 0) {
           out[i * OUT_SIZE + j] = b[j];
         }
-        out[i * OUT_SIZE + j] += x[i * IN_SIZE + k] * w[k * OUT_SIZE + j];
+        mulBox = (MulMemWord)x[i * IN_SIZE + k] * (MulMemWord)w[k * OUT_SIZE + j];
+        out[i * OUT_SIZE + j] += (ExtMemWord)mulBox;
       }
     }
   }
@@ -74,7 +77,8 @@ void DlAffine2::Backward(ExtMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dx[i * IN_SIZE + j] = 0;
         }
-        dx[i * IN_SIZE + j] += dout[i * OUT_SIZE + k] * w[j * OUT_SIZE + k];
+        mulBox = (MulMemWord)dout[i * OUT_SIZE + k] * (MulMemWord)w[j * OUT_SIZE + k];
+        dx[i * IN_SIZE + j] += (ExtMemWord)mulBox;
       }
     }
   }
@@ -85,7 +89,8 @@ void DlAffine2::Backward(ExtMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dw[i * OUT_SIZE + j] = 0;
         }
-        dw[i * OUT_SIZE + j] += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
+        mulBox = (MulMemWord)x[k * IN_SIZE + i] * (MulMemWord)dout[k * OUT_SIZE + j];
+        dw[i * OUT_SIZE + j] += (ExtMemWord)mulBox;
         if (i == 0) {
           if (k == 0) {
             db[j] = 0;

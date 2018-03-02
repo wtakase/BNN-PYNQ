@@ -1,3 +1,5 @@
 bnn/src/xilinx-tiny-cnn/
 *.swp
 __pycache__
+*-ubyte.gz
+bnn/dataset/mnist.pkl

@@ -61,10 +61,11 @@ void FoldedMVInit(const char * attachName) {
 }
 
 void FoldedMVDeinit() {
-  delete bufIn;
-  delete bufOut;
-  bufIn = 0;
-  bufOut = 0;
+  // NOTE(wtakase): Not sure why these cause 'double free or corruption'
+  //delete bufIn;
+  //delete bufOut;
+  //bufIn = 0;
+  //bufOut = 0;
 }
 
 } // namespace bnn_fc

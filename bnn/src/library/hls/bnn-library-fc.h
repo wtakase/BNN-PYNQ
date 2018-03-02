@@ -43,15 +43,20 @@
 #include <hls_stream.h>
 #include <iostream>
 #include <string>
-#include "hls_half.h"
-
-#define CASSERT_DATAFLOW(x) ;
 
 #include "DlUtil.hpp"
+
+#if defined(HLSFIXED)
+
+#else
+
 #include "DlAffine.hpp"
 #include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
-#include "DlSgd.hpp"
-#include "DlTwoLayerNet.hpp"
+
+#endif 
+
+#define CASSERT_DATAFLOW(x) ;
+
 #include "fc.h"
 #include "dma-fc.h"

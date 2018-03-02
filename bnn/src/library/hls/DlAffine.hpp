@@ -16,6 +16,7 @@ public:
   ExtMemWord out[BATCH_SIZE * OUT_SIZE];
   ExtMemWord dw[W1_SIZE];
   ExtMemWord db[B1_SIZE];
+  MulMemWord mulBox;
 
   DlAffine1(ExtMemWord w[W1_SIZE], ExtMemWord b[B1_SIZE]);
 
@@ -36,6 +37,7 @@ public:
   ExtMemWord dx[BATCH_SIZE * IN_SIZE];
   ExtMemWord dw[W2_SIZE];
   ExtMemWord db[B2_SIZE];
+  MulMemWord mulBox;
 
   DlAffine2(ExtMemWord w[W2_SIZE], ExtMemWord b[B2_SIZE]);
 

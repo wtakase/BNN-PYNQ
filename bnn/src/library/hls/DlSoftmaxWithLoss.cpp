@@ -2,6 +2,31 @@
 #include "DlSoftmaxWithLoss.hpp"
 #include <algorithm>
 
+#if defined(FPGA)
+
+#include "hls_math.h"
+
+float expWrapper(float in) {
+  return hls::exp(in);
+}
+
+float logWrapper(float in) {
+  return hls::log(in);
+}
+
+
+#else
+
+float expWrapper(float in) {
+  return std::exp(in);
+}
+
+float logWrapper(float in) {
+  return std::log(in);
+}
+
+#endif
+
 DlSoftmaxWithLoss::DlSoftmaxWithLoss()
 {
 }
@@ -17,7 +42,8 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(ExtMemWord x[BATCH_SIZE * SIZE])
     }
     ExtMemWord expXSubXmaxSum = 0;
     for (unsigned int j = 0; j < SIZE; j++) {
-      ExtMemWord expXSubXmax = std::exp(x[i * SIZE + j] - x[maxIndex]);
+      float xSubXMaxFloat = x[i * SIZE + j] - x[maxIndex];
+      ExtMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
     }
@@ -32,7 +58,9 @@ ExtMemWord DlSoftmaxWithLoss::CrossEntropyError()
   ExtMemWord sum = 0;
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
-      sum += t[i * SIZE + j] * log(out[i * SIZE + j] + 1e-7);
+      float outFloat = out[i * SIZE + j];
+      outFloat += 1e-7;
+      sum += t[i * SIZE + j] * (ExtMemWord)logWrapper(outFloat);
     }
   }
   return -sum / BATCH_SIZE;
@@ -49,7 +77,8 @@ void DlSoftmaxWithLoss::Backward()
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
-      dx[i * SIZE + j] = (out[i * SIZE + j] - t[i * SIZE + j]) / BATCH_SIZE;
+      mulBox = (MulMemWord)(out[i * SIZE + j] - t[i * SIZE + j]) / (MulMemWord)BATCH_SIZE;
+      dx[i * SIZE + j] = (ExtMemWord)mulBox;
     }
   }
 }

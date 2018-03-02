@@ -50,7 +50,7 @@ setup(
     author = "Nicholas Fraser, Giulio Gambardella, Peter Ogden, Yaman Umuroglu",
     author_email = "pynq_support@xilinx.com",
     include_package_data = True,
-    packages = ['bnn'],
+    packages = ['bnn', 'bnn.dataset'],
     package_data = {
     '' : ['*.bit','*.tcl','*.so','*.bin','*.txt', '*.cpp', '*.h', '*.sh'],
     },    

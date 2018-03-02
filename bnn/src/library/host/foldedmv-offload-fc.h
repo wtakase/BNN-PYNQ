@@ -50,7 +50,6 @@
 #include "DlAffine.hpp"
 #include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
-#include "DlTwoLayerNet.hpp"
 
 namespace bnn_fc
 {
@@ -87,66 +86,6 @@ void SetParam(ExtMemWord *param, unsigned int rowNum, unsigned int colNum, doubl
   }
 }
 
-template<unsigned int dummy>
-double getAccuracy(std::vector<tiny_cnn::vec_t> &images, std::vector<tiny_cnn::label_t> &labels, ExtMemWord *w1, ExtMemWord *b1, ExtMemWord *w2, ExtMemWord *b2) {
-  // Create Two-layer network
-  DlTwoLayerNet network(w1, b1, w2, b2);
-
-  ExtMemWord xBatch[BATCH_SIZE * INPUT_SIZE];
-  ExtMemWord tBatch[BATCH_SIZE * OUTPUT_SIZE];
-
-  // Prepare batch of test
-  for (int i = 0; i < BATCH_SIZE; i++) {
-    unsigned int index = rand() % TEST_SIZE;
-    // Prepare batch of image
-    for (int j = 0; j < INPUT_SIZE; j++) {
-      xBatch[i * INPUT_SIZE + j] = (ExtMemWord)images[index][j];
-    }
-    // Prepare batch of label
-    for (int j = 0; j < OUTPUT_SIZE; j++) {
-      if (j == labels[index]) {
-        tBatch[i * OUTPUT_SIZE + j] = 1.0;
-      } else {
-        tBatch[i * OUTPUT_SIZE + j] = 0.0;
-      }
-    }
-  }
-
-  // Calcurate accuracy
-  ExtMemWord tmpArray1[BATCH_SIZE];
-  ExtMemWord tmpArray2[BATCH_SIZE];
-  network.Predict(xBatch);
-  for (int i = 0; i < BATCH_SIZE; i++) {
-    for (int j = 0; j < OUTPUT_SIZE; j++) {
-      if (j == 0) {
-        tmpArray1[i] = 0.0;
-      } else {
-        if (network.affine2->out[i * OUTPUT_SIZE + (int)tmpArray1[i]] < network.affine2->out[i * OUTPUT_SIZE + j]) {
-          tmpArray1[i] = (ExtMemWord)j;
-        }
-      }
-    }
-  }
-  for (int i = 0; i < BATCH_SIZE; i++) {
-    for (int j = 0; j < OUTPUT_SIZE; j++) {
-      if (j == 0) {
-        tmpArray2[i] = 0.0;
-      } else {
-        if (tBatch[i * OUTPUT_SIZE + (int)tmpArray2[i]] < tBatch[i * OUTPUT_SIZE + j]) {
-          tmpArray2[i] = (ExtMemWord)j;
-        }
-      }
-    }
-  }
-  double sum = 0.0;
-  for (int i = 0; i < BATCH_SIZE; ++i) {
-    if (tmpArray1[i] == tmpArray2[i]) {
-      sum += 1.0;
-    }
-  }
-  return sum / BATCH_SIZE;
-}
-
 } // namespace bnn_fc
 
 #if defined(OFFLOAD) && defined(RAWHLS)
@@ -159,7 +98,7 @@ void BlackBoxJam(ExtMemWord *in, ExtMemWord *out);
 extern ExtMemWord *bufIn, *bufOut;
 
 template<unsigned int dummy>
-std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::vector<tiny_cnn::label_t> &trainLabels, std::vector<tiny_cnn::vec_t> &testImages, std::vector<tiny_cnn::label_t> &testLabels, const unsigned int imageNum, float &usecPerImage) {
+std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::vector<tiny_cnn::label_t> &trainLabels, const unsigned int imageNum, float &usecPerImage) {
 
   const unsigned int imageSize = trainImages[0].size();
 
@@ -176,8 +115,12 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
     throw "Not enough space in accelBufOut";
   }
 
-  ExtMemWord *packedIn = new ExtMemWord[packedInSize];
-  ExtMemWord *packedOut = new ExtMemWord[packedOutSize];
+  // NOTE(wtakase): Need comment out to prevent
+  // 'application performed illegal memory access and is being terminated'
+  //ExtMemWord *packedIn = new ExtMemWord[packedInSize];
+  //ExtMemWord *packedOut = new ExtMemWord[packedOutSize];
+  ExtMemWord packedIn[packedInSize];
+  ExtMemWord packedOut[packedOutSize];
 
   // initialize weights and biases and pack them
   unsigned int inOffset = 0;
@@ -199,7 +142,7 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
     }
   }
 
-  std::vector<double> result;
+  std::vector<float> result;
   for (unsigned int countLoop = 0; countLoop < countLoopNum; countLoop++) {
     unsigned int countOffset = countLoop * count;
     // pack images and labels
@@ -209,35 +152,42 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
         if (j < imageSize) {
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainImages[countOffset + i][j];
         } else {
+#if defined(HLSFIXED)
+          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)((ShiftMemWord)trainLabels[countOffset + i] >> 4);
+#else
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainLabels[countOffset + i];
+#endif
         }
       }
     }
 
-    unsigned long int randomSeed = (unsigned long int)time(NULL);
-
-    auto t1 = std::chrono::high_resolution_clock::now();
+    //auto t1 = std::chrono::high_resolution_clock::now();
     // call the accelerator in compute mode
     bnn_fc::BlackBoxJam((ExtMemWord *)packedIn, (ExtMemWord *)packedOut);
-    auto t2 = std::chrono::high_resolution_clock::now();
+    //auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    usecPerImage = (float)duration / (count);
+    //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    //usecPerImage = (float)duration / (count);
 
-    double accuracy = bnn_fc::getAccuracy<0>(testImages, testLabels, (ExtMemWord *)&packedOut[0], (ExtMemWord *)&packedOut[W1_SIZE], (ExtMemWord *)&packedOut[W1_SIZE + B1_SIZE], (ExtMemWord *)&packedOut[W1_SIZE + B1_SIZE + W2_SIZE]);
-    result.push_back(accuracy);
-
-    std::cout << "1-batch (" << count << " images) training took " << duration << " microseconds, " << usecPerImage << " usec per image, " << 1000000.0 / usecPerImage << " images per second" << ", Test accuracy: " << accuracy << std::endl;
+    //std::cout << "1-batch (" << count << " images) training took " << duration << " microseconds, " << usecPerImage << " usec per image, " << 1000000.0 / usecPerImage << " images per second" << ", Test accuracy: " << accuracy << std::endl;
 
     // get trained weights and biases
-    if (countLoop < countLoopNum - 1) {
-      for (unsigned int i = 0; i < W_B_SIZE; i++) {
-        packedIn[i] = packedOut[i];
-      }
+    for (unsigned int i = 0; i < W_B_SIZE; i++) {
+      packedIn[i] = packedOut[i];
     }
   }
-  delete [] packedIn;
-  delete [] packedOut;
+
+  // put trained weights and biases
+  for (unsigned int i = 0; i < W_B_SIZE; i++) {
+    result.push_back((float)packedOut[i]);
+  }
+
+  // NOTE(wtakase): Need comment out to prevent
+  // 'application performed illegal memory access and is being terminated'
+  //delete packedIn;
+  //delete packedOut;
+  //packedIn = 0;
+  //packedOut = 0;
   return (result);
 }
 
@@ -257,7 +207,7 @@ extern ExtMemWord *bufIn, *bufOut;
 void ExecAccel();
 
 template<unsigned int dummy>
-std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::vector<tiny_cnn::label_t> &trainLabels, std::vector<tiny_cnn::vec_t> &testImages, std::vector<tiny_cnn::label_t> &testLabels, const unsigned int imageNum, float &usecPerImage) {
+std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::vector<tiny_cnn::label_t> &trainLabels, const unsigned int imageNum, float &usecPerImage) {
 
   const unsigned int imageSize = trainImages[0].size();
 
@@ -274,8 +224,12 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
     throw "Not enough space in accelBufOut";
   }
 
-  ExtMemWord *packedIn = new ExtMemWord[packedInSize];
-  ExtMemWord *packedOut = new ExtMemWord[packedOutSize];
+  // NOTE(wtakase): Need comment out to prevent
+  // 'application performed illegal memory access and is being terminated'
+  //ExtMemWord *packedIn = new ExtMemWord[packedInSize];
+  //ExtMemWord *packedOut = new ExtMemWord[packedOutSize];
+  ExtMemWord packedIn[packedInSize];
+  ExtMemWord packedOut[packedOutSize];
 
   // initialize weights and biases and pack them
   unsigned int inOffset = 0;
@@ -297,7 +251,7 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
     }
   }
 
-  std::vector<double> result;
+  std::vector<float> result;
   for (unsigned int countLoop = 0; countLoop < countLoopNum; countLoop++) {
     unsigned int countOffset = countLoop * count;
     // pack images and labels
@@ -307,41 +261,48 @@ std::vector<double> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::v
         if (j < imageSize) {
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainImages[countOffset + i][j];
         } else {
+#if defined(HLSFIXED)
+          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)((ShiftMemWord)trainLabels[countOffset + i] >> 4);
+#else
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainLabels[countOffset + i];
+#endif
         }
       }
     }
 
-    unsigned long int randomSeed = (unsigned long int)time(NULL);
-
     // copy inputs to accelerator
     thePlatform->copyBufferHostToAccel((void *)packedIn, accelBufIn, sizeof(ExtMemWord) * packedInSize);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    //auto t1 = std::chrono::high_resolution_clock::now();
     // call the accelerator in compute mode
     ExecAccel();
-    auto t2 = std::chrono::high_resolution_clock::now();
+    //auto t2 = std::chrono::high_resolution_clock::now();
 
     // copy results back to host
     thePlatform->copyBufferAccelToHost(accelBufOut, (void *)packedOut, sizeof(ExtMemWord) * packedOutSize);
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    usecPerImage = (float)duration / (count);
+    //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    //usecPerImage = (float)duration / (count);
 
-    double accuracy = bnn_fc::getAccuracy<0>(testImages, testLabels, (ExtMemWord *)&packedOut[0], (ExtMemWord *)&packedOut[W1_SIZE], (ExtMemWord *)&packedOut[W1_SIZE + B1_SIZE], (ExtMemWord *)&packedOut[W1_SIZE + B1_SIZE + W2_SIZE]);
-    result.push_back(accuracy);
-
-    std::cout << "1-batch (" << count << " images) training took " << duration << " microseconds, " << usecPerImage << " usec per image, " << 1000000.0 / usecPerImage << " images per second" << ", Test accuracy: " << accuracy << std::endl;
+    //std::cout << "1-batch (" << count << " images) training took " << duration << " microseconds, " << usecPerImage << " usec per image, " << 1000000.0 / usecPerImage << " images per second" << ", Test accuracy: " << accuracy << std::endl;
 
     // get trained weights and biases
-    if (countLoop < countLoopNum - 1) {
-      for (unsigned int i = 0; i < W_B_SIZE; i++) {
-        packedIn[i] = packedOut[i];
-      }
+    for (unsigned int i = 0; i < W_B_SIZE; i++) {
+      packedIn[i] = packedOut[i];
     }
   }
-  delete [] packedIn;
-  delete [] packedOut;
+
+  // put trained weights and biases
+  for (unsigned int i = 0; i < W_B_SIZE; i++) {
+    result.push_back((float)packedOut[i]);
+  }
+
+  // NOTE(wtakase): Need comment out to prevent
+  // 'application performed illegal memory access and is being terminated'
+  //delete packedIn;
+  //delete packedOut;
+  //packedIn = 0;
+  //packedOut = 0;
   return (result);
 }
 

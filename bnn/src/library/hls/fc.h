@@ -73,31 +73,28 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
       xTrain[i * INPUT_SIZE + j] = in.read();
     }
-    unsigned int label = (unsigned int)in.read();
+#if defined(HLSFIXED)
+    ExtMemWord label = in.read();
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
-      if (j == label) {
+      ExtMemWord iterLabel = (ExtMemWord)((ShiftMemWord)j >> 4);
+      if (label == iterLabel) {
         tTrain[i * OUTPUT_SIZE + j] = 1.0;
       } else {
         tTrain[i * OUTPUT_SIZE + j] = 0.0;
       }
     }
+#else
+    unsigned int label = (unsigned int)in.read();
+    for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
+      if (label == j) {
+        tTrain[i * OUTPUT_SIZE + j] = 1.0;
+      } else {
+        tTrain[i * OUTPUT_SIZE + j] = 0.0;
+      }
+    }
+#endif
   }
-/* NOTE(wtakase): This doesn't work
-  //////////////////////////////////////////
-  // Create Two-layer network
-  DlTwoLayerNet network(w1, b1, w2, b2);
 
-  // Initialize optimizer
-  DlSgd sgd(LEARNING_RATE);
-
-  // Train
-  network.Gradient(xTrain, tTrain);
-
-  // Update parameters
-  sgd.Update(&network);
-  //////////////////////////////////////////
-*/
-  //////////////////////////////////////////
   // Create Two-layer network
   DlAffine1 affine1(w1, b1);
   DlRelu1 relu1;
@@ -132,7 +129,6 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
       }
     }
   }
-  //////////////////////////////////////////
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
     out.write(w1[i]);

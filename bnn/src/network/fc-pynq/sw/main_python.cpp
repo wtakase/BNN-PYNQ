@@ -43,42 +43,43 @@
 #include <string.h>
 #include "foldedmv-offload-fc.h"
 
+std::vector<tiny_cnn::label_t> trainLabels;
+std::vector<tiny_cnn::vec_t> trainImages;
 
-extern "C" double *train(const char *path, unsigned int imageNum, float *usecPerImage)
+extern "C" void load_images(const char *path)
 {
   std::string trainLabelPath(path);
   trainLabelPath.append("/train-labels-idx1-ubyte");
   std::string trainImagePath(path);
   trainImagePath.append("/train-images-idx3-ubyte");
-  std::vector<tiny_cnn::label_t> trainLabels;
-  std::vector<tiny_cnn::vec_t> trainImages;
   tiny_cnn::parse_mnist_labels(trainLabelPath, &trainLabels);
   tiny_cnn::parse_mnist_images(trainImagePath, &trainImages, 0.0, 1.0, 0, 0);
+}
 
-  std::string testLabelPath(path);
-  testLabelPath.append("/t10k-labels-idx1-ubyte");
-  std::string testImagePath(path);
-  testImagePath.append("/t10k-images-idx3-ubyte");
-  std::vector<tiny_cnn::label_t> testLabels;
-  std::vector<tiny_cnn::vec_t> testImages;
-  tiny_cnn::parse_mnist_labels(testLabelPath, &testLabels);
-  tiny_cnn::parse_mnist_images(testImagePath, &testImages, 0.0, 1.0, 0, 0);
-
+extern "C" float *train(unsigned int imageNum, float *usecPerImage)
+{
   bnn_fc::FoldedMVInit("fc-pynq");
-  std::vector<double> accuracyResult;
+  std::vector<float> wBResult;
   float usecPerImage_int;
-  accuracyResult = bnn_fc::trainMNIST<0>(trainImages, trainLabels, testImages, testLabels, imageNum, usecPerImage_int);
-  double *result = new double[12000];
-  std::copy(accuracyResult.begin(), accuracyResult.end(), result);
+  wBResult = bnn_fc::trainMNIST<0>(trainImages, trainLabels, imageNum, usecPerImage_int);
+  float *result = new float[W_B_SIZE];
+  std::copy(wBResult.begin(), wBResult.end(), result);
   if (usecPerImage) {
     *usecPerImage = usecPerImage_int;
   }
   return result;
 }
 
-extern "C" void free_results(double *result)
+extern "C" void free_results(float *result)
 {
-  delete[] result;
+  delete result;
+  result = 0;
+}
+
+extern "C" void free_images()
+{
+  std::vector<tiny_cnn::label_t>().swap(trainLabels);
+  std::vector<tiny_cnn::vec_t>().swap(trainImages);
 }
 
 extern "C" void deinit() {
