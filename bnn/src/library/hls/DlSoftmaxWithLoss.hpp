@@ -7,19 +7,19 @@ class DlSoftmaxWithLoss
 {
 public:
   static const unsigned int SIZE = OUTPUT_SIZE;
-  ExtMemWord out[BATCH_SIZE * SIZE];
-  ExtMemWord dx[BATCH_SIZE * SIZE];
-  ExtMemWord loss;
-  ExtMemWord *t;
+  IntMemWord out[BATCH_SIZE * SIZE];
+  IntMemWord dx[BATCH_SIZE * SIZE];
+  IntMemWord loss;
+  IntMemWord *t;
   MulMemWord mulBox;
 
   DlSoftmaxWithLoss();
 
-  void SoftmaxWithLoss(ExtMemWord x[BATCH_SIZE * SIZE]);
+  void SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE]);
 
-  ExtMemWord CrossEntropyError();
+  IntMemWord CrossEntropyError();
 
-  ExtMemWord Forward(ExtMemWord x[BATCH_SIZE * SIZE], ExtMemWord t[BATCH_SIZE * SIZE]);
+  IntMemWord Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE]);
 
   void Backward();
 };

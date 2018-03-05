@@ -7,9 +7,10 @@
 
 namespace bnn_fc
 {
+//typedef ap_fixed<32, 8, AP_RND, AP_SAT> IntMemWord;
+typedef ap_fixed<24, 4, AP_RND, AP_SAT> IntMemWord;
+//typedef ap_fixed<16, 2, AP_RND, AP_SAT> IntMemWord;
 typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
-//typedef ap_fixed<24, 4, AP_RND, AP_SAT> ExtMemWord;
-//typedef ap_fixed<16, 2, AP_RND, AP_SAT> ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
 //typedef float MulMemWord;
@@ -23,6 +24,7 @@ typedef ap_fixed<32, 8, AP_RND, AP_SAT> ShiftMemWord;
 
 namespace bnn_fc
 {
+typedef half IntMemWord;
 typedef half ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
@@ -33,6 +35,7 @@ typedef float MulMemWord;
 
 namespace bnn_fc
 {
+typedef float IntMemWord;
 typedef float ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;

@@ -49,29 +49,29 @@ namespace bnn_fc
 
 template<unsigned int SIZE_PER_IMAGE>
 void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &out) {
-  ExtMemWord w1[W1_SIZE];
-  ExtMemWord b1[B1_SIZE];
-  ExtMemWord w2[W2_SIZE];
-  ExtMemWord b2[B2_SIZE];
+  IntMemWord w1[W1_SIZE];
+  IntMemWord b1[B1_SIZE];
+  IntMemWord w2[W2_SIZE];
+  IntMemWord b2[B2_SIZE];
   for (unsigned int i = 0; i < W1_SIZE; i++) {
-    w1[i] = in.read();
+    w1[i] = (IntMemWord)in.read();
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
-    b1[i] = in.read();
+    b1[i] = (IntMemWord)in.read();
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
-    w2[i] = in.read();
+    w2[i] = (IntMemWord)in.read();
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
-    b2[i] = in.read();
+    b2[i] = (IntMemWord)in.read();
   }
 
-  ExtMemWord xTrain[INPUT_SIZE * BATCH_SIZE];
-  ExtMemWord tTrain[OUTPUT_SIZE * BATCH_SIZE];
+  IntMemWord xTrain[INPUT_SIZE * BATCH_SIZE];
+  IntMemWord tTrain[OUTPUT_SIZE * BATCH_SIZE];
 
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
-      xTrain[i * INPUT_SIZE + j] = in.read();
+      xTrain[i * INPUT_SIZE + j] = (IntMemWord)in.read();
     }
 #if defined(HLSFIXED)
     ExtMemWord label = in.read();
@@ -131,16 +131,16 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   }
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
-    out.write(w1[i]);
+    out.write((ExtMemWord)w1[i]);
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
-    out.write(b1[i]);
+    out.write((ExtMemWord)b1[i]);
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
-    out.write(w2[i]);
+    out.write((ExtMemWord)w2[i]);
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
-    out.write(b2[i]);
+    out.write((ExtMemWord)b2[i]);
   }
 }
 

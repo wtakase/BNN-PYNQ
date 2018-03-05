@@ -5,7 +5,7 @@ DlRelu1::DlRelu1()
 {
 }
 
-void DlRelu1::Forward(ExtMemWord x[BATCH_SIZE * SIZE])
+void DlRelu1::Forward(IntMemWord x[BATCH_SIZE * SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
@@ -18,7 +18,7 @@ void DlRelu1::Forward(ExtMemWord x[BATCH_SIZE * SIZE])
   }
 }
 
-void DlRelu1::Backward(ExtMemWord dout[BATCH_SIZE * SIZE])
+void DlRelu1::Backward(IntMemWord dout[BATCH_SIZE * SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {

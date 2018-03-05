@@ -31,7 +31,7 @@ DlSoftmaxWithLoss::DlSoftmaxWithLoss()
 {
 }
 
-void DlSoftmaxWithLoss::SoftmaxWithLoss(ExtMemWord x[BATCH_SIZE * SIZE])
+void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     unsigned int maxIndex = i * SIZE;
@@ -40,10 +40,10 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(ExtMemWord x[BATCH_SIZE * SIZE])
         maxIndex = i * SIZE + j;
       }
     }
-    ExtMemWord expXSubXmaxSum = 0;
+    IntMemWord expXSubXmaxSum = 0;
     for (unsigned int j = 0; j < SIZE; j++) {
       float xSubXMaxFloat = x[i * SIZE + j] - x[maxIndex];
-      ExtMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
+      IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
     }
@@ -53,20 +53,20 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(ExtMemWord x[BATCH_SIZE * SIZE])
   }
 }
 
-ExtMemWord DlSoftmaxWithLoss::CrossEntropyError()
+IntMemWord DlSoftmaxWithLoss::CrossEntropyError()
 {
-  ExtMemWord sum = 0;
+  IntMemWord sum = 0;
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
       float outFloat = out[i * SIZE + j];
       outFloat += 1e-7;
-      sum += t[i * SIZE + j] * (ExtMemWord)logWrapper(outFloat);
+      sum += t[i * SIZE + j] * (IntMemWord)logWrapper(outFloat);
     }
   }
   return -sum / BATCH_SIZE;
 }
 
-ExtMemWord DlSoftmaxWithLoss::Forward(ExtMemWord x[BATCH_SIZE * SIZE], ExtMemWord t[BATCH_SIZE * SIZE])
+IntMemWord DlSoftmaxWithLoss::Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE])
 {
   this->t = t;
   DlSoftmaxWithLoss::SoftmaxWithLoss(x);
@@ -78,7 +78,7 @@ void DlSoftmaxWithLoss::Backward()
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
       mulBox = (MulMemWord)(out[i * SIZE + j] - t[i * SIZE + j]) / (MulMemWord)BATCH_SIZE;
-      dx[i * SIZE + j] = (ExtMemWord)mulBox;
+      dx[i * SIZE + j] = (IntMemWord)mulBox;
     }
   }
 }
