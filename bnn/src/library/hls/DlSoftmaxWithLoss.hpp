@@ -11,7 +11,9 @@ public:
   IntMemWord dx[BATCH_SIZE * SIZE];
   IntMemWord loss;
   IntMemWord *t;
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
+#endif
 
   DlSoftmaxWithLoss();
 

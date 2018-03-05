@@ -55,7 +55,8 @@ set config_clkperiod 5
 open_project $config_proj_name
 #add_files "$config_hwsrcdir/top.cpp $config_bnnlibdir/DlAffine.cpp $config_bnnlibdir/DlSoftmaxWithLoss.cpp $config_bnnlibdir/DlRelu.cpp" -cflags "-std=c++0x -I$config_bnnlibdir -DFPGA"
 #add_files "$config_hwsrcdir/top.cpp $config_bnnlibdir/DlAffine.cpp $config_bnnlibdir/DlSoftmaxWithLoss.cpp $config_bnnlibdir/DlRelu.cpp" -cflags "-std=c++0x -I$config_bnnlibdir -DHLSHALF -DFPGA"
-add_files "$config_hwsrcdir/top.cpp $config_bnnlibdir/DlAffine.cpp $config_bnnlibdir/DlSoftmaxWithLoss.cpp $config_bnnlibdir/DlRelu.cpp" -cflags "-std=c++0x -I$config_bnnlibdir -DHLSFIXED -DFPGA"
+#add_files "$config_hwsrcdir/top.cpp $config_bnnlibdir/DlAffine.cpp $config_bnnlibdir/DlSoftmaxWithLoss.cpp $config_bnnlibdir/DlRelu.cpp" -cflags "-std=c++0x -I$config_bnnlibdir -DHLSFIXED -DFPGA"
+add_files "$config_hwsrcdir/top.cpp $config_bnnlibdir/DlAffine.cpp $config_bnnlibdir/DlSoftmaxWithLoss.cpp $config_bnnlibdir/DlRelu.cpp" -cflags "-std=c++0x -I$config_bnnlibdir -DHLSFIXED -DHLSNOSHIFT -DHLSNOCAST -DFPGA"
 set_top $config_toplevelfxn
 open_solution sol1
 set_part $config_proj_part

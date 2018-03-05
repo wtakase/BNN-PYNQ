@@ -261,7 +261,7 @@ std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::ve
         if (j < imageSize) {
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainImages[countOffset + i][j];
         } else {
-#if defined(HLSFIXED)
+#if defined(HLSFIXED) && !defined(HLSNOSHIFT)
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)((ShiftMemWord)trainLabels[countOffset + i] >> 4);
 #else
           packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainLabels[countOffset + i];

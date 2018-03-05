@@ -77,8 +77,12 @@ void DlSoftmaxWithLoss::Backward()
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
       mulBox = (MulMemWord)(out[i * SIZE + j] - t[i * SIZE + j]) / (MulMemWord)BATCH_SIZE;
       dx[i * SIZE + j] = (IntMemWord)mulBox;
+#else
+      dx[i * SIZE + j] = (out[i * SIZE + j] - t[i * SIZE + j]) / BATCH_SIZE;
+#endif
     }
   }
 }

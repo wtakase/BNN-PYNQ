@@ -16,7 +16,9 @@ public:
   IntMemWord out[BATCH_SIZE * OUT_SIZE];
   IntMemWord dw[W1_SIZE];
   IntMemWord db[B1_SIZE];
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
+#endif
 
   DlAffine1(IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
 
@@ -37,7 +39,9 @@ public:
   IntMemWord dx[BATCH_SIZE * IN_SIZE];
   IntMemWord dw[W2_SIZE];
   IntMemWord db[B2_SIZE];
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
+#endif
 
   DlAffine2(IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
 

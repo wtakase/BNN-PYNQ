@@ -17,8 +17,12 @@ void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
         if (k == 0) {
           out[i * OUT_SIZE + j] = b[j];
         }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
         mulBox = (MulMemWord)x[i * IN_SIZE + k] * (MulMemWord)w[k * OUT_SIZE + j];
         out[i * OUT_SIZE + j] += (IntMemWord)mulBox;
+#else
+        out[i * OUT_SIZE + j] += x[i * IN_SIZE + k] * w[k * OUT_SIZE + j];
+#endif
       }
     }
   }
@@ -32,8 +36,12 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dw[i * OUT_SIZE + j] = 0;
         }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
         mulBox = (MulMemWord)x[k * IN_SIZE + i] * (MulMemWord)dout[k * OUT_SIZE + j];
         dw[i * OUT_SIZE + j] += (IntMemWord)mulBox;
+#else
+        dw[i * OUT_SIZE + j] += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
+#endif
         if (i == 0) {
           if (k == 0) {
             db[j] = 0;
@@ -62,8 +70,12 @@ void DlAffine2::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
         if (k == 0) {
           out[i * OUT_SIZE + j] = b[j];
         }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
         mulBox = (MulMemWord)x[i * IN_SIZE + k] * (MulMemWord)w[k * OUT_SIZE + j];
         out[i * OUT_SIZE + j] += (IntMemWord)mulBox;
+#else
+        out[i * OUT_SIZE + j] += x[i * IN_SIZE + k] * w[k * OUT_SIZE + j];
+#endif
       }
     }
   }
@@ -77,8 +89,12 @@ void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dx[i * IN_SIZE + j] = 0;
         }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
         mulBox = (MulMemWord)dout[i * OUT_SIZE + k] * (MulMemWord)w[j * OUT_SIZE + k];
         dx[i * IN_SIZE + j] += (IntMemWord)mulBox;
+#else
+        dx[i * IN_SIZE + j] += dout[i * OUT_SIZE + k] * w[j * OUT_SIZE + k];
+#endif
       }
     }
   }
@@ -89,8 +105,12 @@ void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
         if (k == 0) {
           dw[i * OUT_SIZE + j] = 0;
         }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
         mulBox = (MulMemWord)x[k * IN_SIZE + i] * (MulMemWord)dout[k * OUT_SIZE + j];
         dw[i * OUT_SIZE + j] += (IntMemWord)mulBox;
+#else
+        dw[i * OUT_SIZE + j] += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
+#endif
         if (i == 0) {
           if (k == 0) {
             db[j] = 0;

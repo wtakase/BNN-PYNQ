@@ -11,13 +11,21 @@ namespace bnn_fc
 //typedef ap_fixed<24, 4, AP_RND, AP_SAT> IntMemWord;
 //typedef ap_fixed<16, 2, AP_RND, AP_SAT> IntMemWord;
 //typedef ap_fixed<20, 4, AP_RND, AP_SAT> IntMemWord;
-typedef ap_fixed<16, 4, AP_RND, AP_SAT> IntMemWord;
+typedef ap_fixed<20, 4, AP_RND, AP_SAT> IntMemWord;
+
 typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
+
+#if !defined(HLSNOCAST)
 //typedef float MulMemWord;
 typedef ap_fixed<32, 8, AP_RND, AP_SAT> MulMemWord;
+#endif
+
+#if !defined(HLSNOSHIFT)
 typedef ap_fixed<32, 8, AP_RND, AP_SAT> ShiftMemWord;
+#endif
+
 } // namespace bnn_fc
 
 #elif defined(HLSHALF)
@@ -27,10 +35,9 @@ typedef ap_fixed<32, 8, AP_RND, AP_SAT> ShiftMemWord;
 namespace bnn_fc
 {
 typedef half IntMemWord;
-typedef half ExtMemWord;
+typedef IntMemWord ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
-typedef float MulMemWord;
 } // namespace bnn_fc
 
 #else
@@ -38,10 +45,9 @@ typedef float MulMemWord;
 namespace bnn_fc
 {
 typedef float IntMemWord;
-typedef float ExtMemWord;
+typedef IntMemWord ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
-typedef float MulMemWord;
 } // namespace bnn_fc
 
 #endif

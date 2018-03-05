@@ -73,7 +73,7 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
       xTrain[i * INPUT_SIZE + j] = (IntMemWord)in.read();
     }
-#if defined(HLSFIXED)
+#if defined(HLSFIXED) && !defined(HLSNOSHIFT)
     ExtMemWord label = in.read();
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
       ExtMemWord iterLabel = (ExtMemWord)((ShiftMemWord)j >> 4);
