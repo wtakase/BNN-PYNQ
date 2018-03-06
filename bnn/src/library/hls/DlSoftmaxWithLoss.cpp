@@ -48,7 +48,12 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
       expXSubXmaxSum += expXSubXmax;
     }
     for (unsigned int j = 0; j < SIZE; j++) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+      mulBox = static_cast<MulMemWord>(out[i * SIZE + j]) / static_cast<MulMemWord>(expXSubXmaxSum);
+      out[i * SIZE + j] = static_cast<IntMemWord>(mulBox);
+#else
       out[i * SIZE + j] /= expXSubXmaxSum;
+#endif
     }
   }
 }
@@ -58,12 +63,22 @@ IntMemWord DlSoftmaxWithLoss::CrossEntropyError()
   IntMemWord sum = 0;
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
-      float outFloat = out[i * SIZE + j];
+      float outFloat = static_cast<float>(out[i * SIZE + j]);
       outFloat += 1e-7;
-      sum += t[i * SIZE + j] * (IntMemWord)logWrapper(outFloat);
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+      mulBox = static_cast<MulMemWord>(t[i * SIZE + j]) * static_cast<MulMemWord>(logWrapper(outFloat));
+      sum += static_cast<IntMemWord>(mulBox);
+#else
+      sum += t[i * SIZE + j] * static_cast<IntMemWord>(logWrapper(outFloat));
+#endif
     }
   }
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+  mulBox = static_cast<MulMemWord>(-sum) / static_cast<MulMemWord>(BATCH_SIZE);
+  return static_cast<IntMemWord>(mulBox);
+#else
   return -sum / BATCH_SIZE;
+#endif
 }
 
 IntMemWord DlSoftmaxWithLoss::Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE])
@@ -78,10 +93,10 @@ void DlSoftmaxWithLoss::Backward()
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
-      mulBox = (MulMemWord)(out[i * SIZE + j] - t[i * SIZE + j]) / (MulMemWord)BATCH_SIZE;
-      dx[i * SIZE + j] = (IntMemWord)mulBox;
+      mulBox = static_cast<MulMemWord>(out[i * SIZE + j] - t[i * SIZE + j]) / static_cast<MulMemWord>(BATCH_SIZE);
+      dx[i * SIZE + j] = static_cast<IntMemWord>(mulBox);
 #else
-      dx[i * SIZE + j] = (out[i * SIZE + j] - t[i * SIZE + j]) / BATCH_SIZE;
+      dx[i * SIZE + j] = (out[i * SIZE + j] - t[i * SIZE + j]) / static_cast<IntMemWord>(BATCH_SIZE);
 #endif
     }
   }

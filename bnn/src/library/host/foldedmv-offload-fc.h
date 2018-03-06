@@ -150,12 +150,12 @@ std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::ve
     for (unsigned int i = 0; i < count; i++) {
       for (unsigned int j = 0; j < imageSize + 1; j++) {
         if (j < imageSize) {
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainImages[countOffset + i][j];
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(trainImages[countOffset + i][j]);
         } else {
-#if defined(HLSFIXED)
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)((ShiftMemWord)trainLabels[countOffset + i] >> 4);
+#if defined(HLSFIXED) && !defined(HLSNOSHIFT)
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(static_cast<ShiftMemWord>(trainLabels[countOffset + i]) >> 4);
 #else
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainLabels[countOffset + i];
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(trainLabels[countOffset + i]);
 #endif
         }
       }
@@ -179,7 +179,7 @@ std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::ve
 
   // put trained weights and biases
   for (unsigned int i = 0; i < W_B_SIZE; i++) {
-    result.push_back((float)packedOut[i]);
+    result.push_back(static_cast<float>(packedOut[i]));
   }
 
   // NOTE(wtakase): Need comment out to prevent
@@ -259,12 +259,12 @@ std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::ve
     for (unsigned int i = 0; i < count; i++) {
       for (unsigned int j = 0; j < imageSize + 1; j++) {
         if (j < imageSize) {
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainImages[countOffset + i][j];
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(trainImages[countOffset + i][j]);
         } else {
 #if defined(HLSFIXED) && !defined(HLSNOSHIFT)
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)((ShiftMemWord)trainLabels[countOffset + i] >> 4);
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(static_cast<ShiftMemWord>(trainLabels[countOffset + i]) >> 4);
 #else
-          packedIn[inOffset + i * (imageSize + 1) + j] = (ExtMemWord)trainLabels[countOffset + i];
+          packedIn[inOffset + i * (imageSize + 1) + j] = static_cast<ExtMemWord>(trainLabels[countOffset + i]);
 #endif
         }
       }
@@ -294,7 +294,7 @@ std::vector<float> trainMNIST(std::vector<tiny_cnn::vec_t> &trainImages, std::ve
 
   // put trained weights and biases
   for (unsigned int i = 0; i < W_B_SIZE; i++) {
-    result.push_back((float)packedOut[i]);
+    result.push_back(static_cast<float>(packedOut[i]));
   }
 
   // NOTE(wtakase): Need comment out to prevent
