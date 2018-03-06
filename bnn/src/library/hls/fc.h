@@ -110,23 +110,44 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   affine2.Backward(softmaxWithLoss.dx);
   relu1.Backward(affine2.dx);
   affine1.Backward(relu1.dx);
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+  MulMemWord mulBox;
+#endif
 
   // Update parameters
   for (unsigned int i = 0; i < INPUT_SIZE; i++) {
     for (unsigned int j = 0; j < HIDDEN1_SIZE; j++) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+      mulBox = (MulMemWord)affine1.dw[i * HIDDEN1_SIZE + j] * (MulMemWord)LEARNING_RATE;
+      w1[i * HIDDEN1_SIZE + j] -= (IntMemWord)mulBox;
+      if (i == 0) {
+        mulBox = (MulMemWord)affine1.db[j] * (MulMemWord)LEARNING_RATE;
+        b1[j] -= (IntMemWord)mulBox;
+      }
+#else
       w1[i * HIDDEN1_SIZE + j] -= affine1.dw[i * HIDDEN1_SIZE + j] * LEARNING_RATE;
       if (i == 0) {
         b1[j] -= affine1.db[j] * LEARNING_RATE;
       }
+#endif
     }
   }
 
   for (unsigned int i = 0; i < HIDDEN1_SIZE; i++) {
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+      mulBox = (MulMemWord)affine2.dw[i * OUTPUT_SIZE + j] * (MulMemWord)LEARNING_RATE;
+      w2[i * OUTPUT_SIZE + j] -= (IntMemWord)mulBox;
+      if (i == 0) {
+        mulBox = (MulMemWord)affine2.db[j] * (MulMemWord)LEARNING_RATE;
+        b2[j] -= (IntMemWord)mulBox;
+      }
+#else
       w2[i * OUTPUT_SIZE + j] -= affine2.dw[i * OUTPUT_SIZE + j] * LEARNING_RATE;
       if (i == 0) {
         b2[j] -= affine2.db[j] * LEARNING_RATE;
       }
+#endif
     }
   }
 
