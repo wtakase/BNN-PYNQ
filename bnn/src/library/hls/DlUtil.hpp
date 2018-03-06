@@ -11,9 +11,11 @@ namespace bnn_fc
 //typedef ap_fixed<24, 4, AP_RND, AP_SAT> IntMemWord;
 //typedef ap_fixed<16, 2, AP_RND, AP_SAT> IntMemWord;
 //typedef ap_fixed<20, 4, AP_RND, AP_SAT> IntMemWord;
-typedef ap_fixed<20, 4, AP_RND, AP_SAT> IntMemWord;
+//typedef ap_fixed<20, 4, AP_RND, AP_SAT> IntMemWord;
+typedef ap_fixed<32, 8> IntMemWord;
 
-typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
+//typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
+typedef ap_fixed<32, 8> ExtMemWord;
 const unsigned int bytesPerExtMemWord = sizeof(ExtMemWord);
 const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
 
