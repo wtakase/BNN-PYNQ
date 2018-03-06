@@ -16,7 +16,8 @@ namespace bnn_fc
 //typedef ap_fixed<24, 4> IntMemWord;
 //typedef ap_fixed<24, 2> IntMemWord;
 //typedef ap_fixed<31, 7> IntMemWord;
-typedef ap_fixed<20, 4, AP_TRN, AP_SAT> IntMemWord;
+//typedef ap_fixed<20, 4, AP_TRN, AP_SAT> IntMemWord;
+typedef ap_fixed<16, 2, AP_TRN, AP_SAT> IntMemWord;
 
 //typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
 typedef ap_fixed<32, 8> ExtMemWord;
