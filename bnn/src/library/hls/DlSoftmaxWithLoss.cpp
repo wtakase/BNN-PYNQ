@@ -42,7 +42,7 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
     }
     IntMemWord expXSubXmaxSum = 0;
     for (unsigned int j = 0; j < SIZE; j++) {
-      float xSubXMaxFloat = x[i * SIZE + j] - x[maxIndex];
+      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - x[maxIndex]);
       IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
@@ -93,7 +93,8 @@ void DlSoftmaxWithLoss::Backward()
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < SIZE; j++) {
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
-      mulBox = static_cast<MulMemWord>(out[i * SIZE + j] - t[i * SIZE + j]) / static_cast<MulMemWord>(BATCH_SIZE);
+      mulBox = static_cast<MulMemWord>(out[i * SIZE + j] - t[i * SIZE + j]);
+      mulBox = mulBox / static_cast<MulMemWord>(BATCH_SIZE);
       dx[i * SIZE + j] = static_cast<IntMemWord>(mulBox);
 #else
       dx[i * SIZE + j] = (out[i * SIZE + j] - t[i * SIZE + j]) / static_cast<IntMemWord>(BATCH_SIZE);
