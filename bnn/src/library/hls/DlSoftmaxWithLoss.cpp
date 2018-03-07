@@ -36,18 +36,22 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     unsigned int maxIndex = i * SIZE;
     for (unsigned int j = 0; j < SIZE; j++) {
+#pragma HLS PIPELINE II=1
       if (x[i * SIZE + j] > x[maxIndex]) {
         maxIndex = i * SIZE + j;
       }
     }
     IntMemWord expXSubXmaxSum = 0;
+    IntMemWord xMax = x[maxIndex];
     for (unsigned int j = 0; j < SIZE; j++) {
-      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - x[maxIndex]);
+#pragma HLS PIPELINE II=1
+      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - xMax);
       IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
     }
     for (unsigned int j = 0; j < SIZE; j++) {
+#pragma HLS PIPELINE II=1
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
       mulBox = static_cast<MulMemWord>(out[i * SIZE + j]) / static_cast<MulMemWord>(expXSubXmaxSum);
       out[i * SIZE + j] = static_cast<IntMemWord>(mulBox);
@@ -62,6 +66,7 @@ IntMemWord DlSoftmaxWithLoss::CrossEntropyError()
 {
   IntMemWord sum = 0;
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     for (unsigned int j = 0; j < SIZE; j++) {
       float outFloat = static_cast<float>(out[i * SIZE + j]);
       outFloat += 1e-7;
@@ -91,6 +96,7 @@ IntMemWord DlSoftmaxWithLoss::Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWor
 void DlSoftmaxWithLoss::Backward()
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     for (unsigned int j = 0; j < SIZE; j++) {
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
       mulBox = static_cast<MulMemWord>(out[i * SIZE + j] - t[i * SIZE + j]);

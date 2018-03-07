@@ -19,6 +19,8 @@ public:
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
+  IntMemWord sumBox1;
+  IntMemWord sumBox2;
 
   DlAffine1(IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
 
@@ -42,6 +44,8 @@ public:
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
+  IntMemWord sumBox1;
+  IntMemWord sumBox2;
 
   DlAffine2(IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
 

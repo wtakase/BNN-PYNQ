@@ -54,15 +54,19 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   IntMemWord w2[W2_SIZE];
   IntMemWord b2[B2_SIZE];
   for (unsigned int i = 0; i < W1_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     w1[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     b1[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     w2[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     b2[i] = static_cast<IntMemWord>(in.read());
   }
 
@@ -71,11 +75,13 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
 
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
       xTrain[i * INPUT_SIZE + j] = static_cast<IntMemWord>(in.read());
     }
 #if defined(HLSFIXED) && !defined(HLSNOSHIFT)
     ExtMemWord label = in.read();
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
       ExtMemWord iterLabel = static_cast<ExtMemWord>(static_cast<ShiftMemWord>(j) >> 4);
       if (label == iterLabel) {
         tTrain[i * OUTPUT_SIZE + j] = 1.0;
@@ -86,6 +92,7 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
 #else
     unsigned int label = static_cast<unsigned int>(in.read());
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
       if (label == j) {
         tTrain[i * OUTPUT_SIZE + j] = 1.0;
       } else {
@@ -117,50 +124,58 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   // Update parameters
   for (unsigned int i = 0; i < INPUT_SIZE; i++) {
     for (unsigned int j = 0; j < HIDDEN1_SIZE; j++) {
+#pragma HLS PIPELINE II=1
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
       mulBox = static_cast<MulMemWord>(affine1.dw[i * HIDDEN1_SIZE + j]) * static_cast<MulMemWord>(LEARNING_RATE);
       w1[i * HIDDEN1_SIZE + j] -= static_cast<IntMemWord>(mulBox);
-      if (i == 0) {
-        mulBox = static_cast<MulMemWord>(affine1.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
-        b1[j] -= static_cast<IntMemWord>(mulBox);
-      }
 #else
       w1[i * HIDDEN1_SIZE + j] -= affine1.dw[i * HIDDEN1_SIZE + j] * LEARNING_RATE;
-      if (i == 0) {
-        b1[j] -= affine1.db[j] * LEARNING_RATE;
-      }
 #endif
+      if (i == 0) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+        mulBox = static_cast<MulMemWord>(affine1.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
+        b1[j] -= static_cast<IntMemWord>(mulBox);
+#else
+        b1[j] -= affine1.db[j] * LEARNING_RATE;
+#endif
+      }
     }
   }
 
   for (unsigned int i = 0; i < HIDDEN1_SIZE; i++) {
     for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
       mulBox = static_cast<MulMemWord>(affine2.dw[i * OUTPUT_SIZE + j]) * static_cast<MulMemWord>(LEARNING_RATE);
       w2[i * OUTPUT_SIZE + j] -= static_cast<IntMemWord>(mulBox);
-      if (i == 0) {
-        mulBox = static_cast<MulMemWord>(affine2.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
-        b2[j] -= static_cast<IntMemWord>(mulBox);
-      }
 #else
       w2[i * OUTPUT_SIZE + j] -= affine2.dw[i * OUTPUT_SIZE + j] * LEARNING_RATE;
-      if (i == 0) {
-        b2[j] -= affine2.db[j] * LEARNING_RATE;
-      }
 #endif
+      if (i == 0) {
+#if defined(HLSFIXED) && !defined(HLSNOCAST)
+        mulBox = static_cast<MulMemWord>(affine2.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
+        b2[j] -= static_cast<IntMemWord>(mulBox);
+#else
+        b2[j] -= affine2.dw[i * OUTPUT_SIZE + j] * LEARNING_RATE;
+#endif
+      }
     }
   }
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(w1[i]));
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(b1[i]));
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(w2[i]));
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
+#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(b2[i]));
   }
 }
