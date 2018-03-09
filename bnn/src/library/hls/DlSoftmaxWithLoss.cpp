@@ -44,7 +44,11 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
     IntMemWord expXSubXmaxSum = 0;
     for (unsigned int j = 0; j < SIZE; j++) {
 #pragma HLS PIPELINE II=1
+#if defined(FPGA)
       float xSubXMaxFloat = (x[i * SIZE + j] - xMax).to_float();
+#else
+      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - xMax);
+#endif
       IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
