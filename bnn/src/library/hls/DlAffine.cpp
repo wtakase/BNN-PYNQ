@@ -47,18 +47,22 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
 #else
         sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
 #endif
-        if (i == 0) {
-          if (k == 0) {
-            sumBox2 = 0;
-          }
-          sumBox2 += dout[k * OUT_SIZE + j];
-          if (k == BATCH_SIZE - 1) {
-            db[j] = sumBox2;
-          }
-        }
         if (k == BATCH_SIZE - 1) {
           dw[i * OUT_SIZE + j] = sumBox1;
         }
+      }
+    }
+  }
+
+  for (unsigned int j = 0; j < OUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
+    for (unsigned int k = 0; k < BATCH_SIZE; k++) {
+      if (k == 0) {
+        sumBox2 = 0;
+      }
+      sumBox2 += dout[k * OUT_SIZE + j];
+      if (k == BATCH_SIZE - 1) {
+        db[j] = sumBox2;
       }
     }
   }
@@ -131,18 +135,22 @@ void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
 #else
         sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
 #endif
-        if (i == 0) {
-          if (k == 0) {
-            sumBox2 = 0;
-          }
-          sumBox2 += dout[k * OUT_SIZE + j];
-          if (k == BATCH_SIZE - 1) {
-            db[j] = sumBox2;
-          }
-        }
         if (k == BATCH_SIZE - 1) {
           dw[i * OUT_SIZE + j] = sumBox1;
         }
+      }
+    }
+  }
+
+  for (unsigned int j = 0; j < OUT_SIZE; j++) {
+#pragma HLS PIPELINE II=1
+    for (unsigned int k = 0; k < BATCH_SIZE; k++) {
+      if (k == 0) {
+        sumBox2 = 0;
+      }
+      sumBox2 += dout[k * OUT_SIZE + j];
+      if (k == BATCH_SIZE - 1) {
+        db[j] = sumBox2;
       }
     }
   }

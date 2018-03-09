@@ -34,18 +34,17 @@ DlSoftmaxWithLoss::DlSoftmaxWithLoss()
 void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
-    unsigned int maxIndex = i * SIZE;
-    for (unsigned int j = 0; j < SIZE; j++) {
+    IntMemWord xMax = x[i * SIZE];
+    for (unsigned int j = 1; j < SIZE; j++) {
 #pragma HLS PIPELINE II=1
-      if (x[i * SIZE + j] > x[maxIndex]) {
-        maxIndex = i * SIZE + j;
+      if (x[i * SIZE + j] > xMax) {
+        xMax = x[i * SIZE + j];
       }
     }
     IntMemWord expXSubXmaxSum = 0;
-    IntMemWord xMax = x[maxIndex];
     for (unsigned int j = 0; j < SIZE; j++) {
 #pragma HLS PIPELINE II=1
-      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - xMax);
+      float xSubXMaxFloat = (x[i * SIZE + j] - xMax).to_float();
       IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
