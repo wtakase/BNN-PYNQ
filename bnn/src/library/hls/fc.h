@@ -55,7 +55,7 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   IntMemWord b2[B2_SIZE];
 
 DO_PRAGMA(HLS ARRAY_PARTITION variable=w1 block factor=DEF_BATCH_SIZE)
-DO_PRAGMA(HLS ARRAY_PARTITION variable=w2 block factor=DEF_BATCH_SIZE)
+//DO_PRAGMA(HLS ARRAY_PARTITION variable=w2 block factor=DEF_BATCH_SIZE)
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
     w1[i] = static_cast<IntMemWord>(in.read());
@@ -74,7 +74,7 @@ DO_PRAGMA(HLS ARRAY_PARTITION variable=w2 block factor=DEF_BATCH_SIZE)
   IntMemWord tTrain[OUTPUT_SIZE * BATCH_SIZE];
 
 DO_PRAGMA(HLS ARRAY_PARTITION variable=xTrain block factor=DEF_BATCH_SIZE)
-DO_PRAGMA(HLS ARRAY_PARTITION variable=tTrain block factor=DEF_BATCH_SIZE)
+//DO_PRAGMA(HLS ARRAY_PARTITION variable=tTrain block factor=DEF_BATCH_SIZE)
 
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
