@@ -10,9 +10,6 @@ class DlAffine1
 public:
   static const unsigned int IN_SIZE = INPUT_SIZE;
   static const unsigned int OUT_SIZE = HIDDEN1_SIZE;
-  IntMemWord *x;
-  IntMemWord *w;
-  IntMemWord *b;
   IntMemWord out[BATCH_SIZE * OUT_SIZE];
   IntMemWord dw[W1_SIZE];
   IntMemWord db[B1_SIZE];
@@ -22,11 +19,11 @@ public:
   IntMemWord sumBox1;
   IntMemWord sumBox2;
 
-  DlAffine1(IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
+  DlAffine1();
 
-  void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE]);
+  void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
 
-  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE]);
+  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE]);
 };
 
 class DlAffine2
@@ -34,9 +31,6 @@ class DlAffine2
 public:
   static const unsigned int IN_SIZE = HIDDEN1_SIZE;
   static const unsigned int OUT_SIZE = OUTPUT_SIZE;
-  IntMemWord *x;
-  IntMemWord *w;
-  IntMemWord *b;
   IntMemWord out[BATCH_SIZE * OUT_SIZE];
   IntMemWord dx[BATCH_SIZE * IN_SIZE];
   IntMemWord dw[W2_SIZE];
@@ -47,11 +41,11 @@ public:
   IntMemWord sumBox1;
   IntMemWord sumBox2;
 
-  DlAffine2(IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
+  DlAffine2();
 
-  void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE]);
+  void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
 
-  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE]);
+  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE]);
 };
 
 #endif

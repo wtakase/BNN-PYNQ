@@ -10,7 +10,6 @@ public:
   IntMemWord out[BATCH_SIZE * SIZE];
   IntMemWord dx[BATCH_SIZE * SIZE];
   IntMemWord loss;
-  IntMemWord *t;
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
@@ -19,11 +18,11 @@ public:
 
   void SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE]);
 
-  IntMemWord CrossEntropyError();
+  IntMemWord CrossEntropyError(IntMemWord t[BATCH_SIZE * SIZE]);
 
   IntMemWord Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE]);
 
-  void Backward();
+  void Backward(IntMemWord t[BATCH_SIZE * SIZE]);
 };
 
 #endif

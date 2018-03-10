@@ -65,7 +65,7 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
   }
 }
 
-IntMemWord DlSoftmaxWithLoss::CrossEntropyError()
+IntMemWord DlSoftmaxWithLoss::CrossEntropyError(IntMemWord t[BATCH_SIZE * SIZE])
 {
   IntMemWord sum = 0;
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
@@ -91,12 +91,11 @@ IntMemWord DlSoftmaxWithLoss::CrossEntropyError()
 
 IntMemWord DlSoftmaxWithLoss::Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE])
 {
-  this->t = t;
   DlSoftmaxWithLoss::SoftmaxWithLoss(x);
-  return DlSoftmaxWithLoss::CrossEntropyError();
+  return DlSoftmaxWithLoss::CrossEntropyError(t);
 }
 
-void DlSoftmaxWithLoss::Backward()
+void DlSoftmaxWithLoss::Backward(IntMemWord t[BATCH_SIZE * SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
 #pragma HLS PIPELINE II=1

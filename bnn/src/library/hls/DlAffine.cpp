@@ -1,16 +1,12 @@
 #include "DlUtil.hpp"
 #include "DlAffine.hpp"
 
-DlAffine1::DlAffine1(IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE])
+DlAffine1::DlAffine1()
 {
-  this->w = w;
-  this->b = b;
 }
 
-void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
+void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE])
 {
-  this->x = x;
-
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < OUT_SIZE; j++) {
       for (unsigned int k = 0; k < IN_SIZE; k++) {
@@ -32,7 +28,7 @@ void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
   }
 }
 
-void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
+void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE])
 {
   for (unsigned int i = 0; i < IN_SIZE; i++) {
     for (unsigned int j = 0; j < OUT_SIZE; j++) {
@@ -69,16 +65,12 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
 }
 
 
-DlAffine2::DlAffine2(IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE])
+DlAffine2::DlAffine2()
 {
-  this->w = w;
-  this->b = b;
 }
 
-void DlAffine2::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
+void DlAffine2::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE])
 {
-  this->x = x;
-
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < OUT_SIZE; j++) {
 #pragma HLS PIPELINE II=1
@@ -100,7 +92,7 @@ void DlAffine2::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE])
   }
 }
 
-void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE])
+void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < IN_SIZE; j++) {

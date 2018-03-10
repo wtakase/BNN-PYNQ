@@ -53,25 +53,28 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   IntMemWord b1[B1_SIZE];
   IntMemWord w2[W2_SIZE];
   IntMemWord b2[B2_SIZE];
+
+DO_PRAGMA(HLS ARRAY_PARTITION variable=w1 block factor=DEF_BATCH_SIZE)
+DO_PRAGMA(HLS ARRAY_PARTITION variable=w2 block factor=DEF_BATCH_SIZE)
+
   for (unsigned int i = 0; i < W1_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     w1[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     b1[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     w2[i] = static_cast<IntMemWord>(in.read());
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     b2[i] = static_cast<IntMemWord>(in.read());
   }
 
   IntMemWord xTrain[INPUT_SIZE * BATCH_SIZE];
   IntMemWord tTrain[OUTPUT_SIZE * BATCH_SIZE];
+
+DO_PRAGMA(HLS ARRAY_PARTITION variable=xTrain block factor=DEF_BATCH_SIZE)
+DO_PRAGMA(HLS ARRAY_PARTITION variable=tTrain block factor=DEF_BATCH_SIZE)
 
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < INPUT_SIZE; j++) {
@@ -103,20 +106,20 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   }
 
   // Create Two-layer network
-  DlAffine1 affine1(w1, b1);
+  DlAffine1 affine1;
   DlRelu1 relu1;
-  DlAffine2 affine2(w2, b2);
+  DlAffine2 affine2;
   DlSoftmaxWithLoss softmaxWithLoss;
 
   // Train
-  affine1.Forward(xTrain);
+  affine1.Forward(xTrain, w1, b1);
   relu1.Forward(affine1.out);
-  affine2.Forward(relu1.out);
+  affine2.Forward(relu1.out, w2, b2);
   softmaxWithLoss.Forward(affine2.out, tTrain);
-  softmaxWithLoss.Backward();
-  affine2.Backward(softmaxWithLoss.dx);
+  softmaxWithLoss.Backward(tTrain);
+  affine2.Backward(softmaxWithLoss.dx, relu1.out, w2);
   relu1.Backward(affine2.dx);
-  affine1.Backward(relu1.dx);
+  affine1.Backward(relu1.dx, xTrain);
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
@@ -163,19 +166,15 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   }
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(w1[i]));
   }
   for (unsigned int i = 0; i < B1_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(b1[i]));
   }
   for (unsigned int i = 0; i < W2_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(w2[i]));
   }
   for (unsigned int i = 0; i < B2_SIZE; i++) {
-#pragma HLS PIPELINE II=1
     out.write(static_cast<ExtMemWord>(b2[i]));
   }
 }

@@ -18,8 +18,8 @@ namespace bnn_fc
 //typedef ap_fixed<31, 7> IntMemWord;
 //typedef ap_fixed<20, 4, AP_TRN, AP_SAT> IntMemWord;
 //typedef ap_fixed<16, 2, AP_TRN, AP_SAT> IntMemWord;
-//typedef ap_fixed<16, 4, AP_TRN, AP_SAT> IntMemWord;
-typedef ap_fixed<14, 4, AP_TRN, AP_SAT> IntMemWord;
+typedef ap_fixed<16, 4, AP_TRN, AP_SAT> IntMemWord;
+//typedef ap_fixed<14, 4, AP_TRN, AP_SAT> IntMemWord;
 //typedef ap_fixed<12, 4, AP_TRN, AP_SAT> IntMemWord;
 
 //typedef ap_fixed<32, 8, AP_RND, AP_SAT> ExtMemWord;
@@ -62,11 +62,15 @@ const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
 
 #endif
 
+#define DEF_BATCH_SIZE 40
+#define PRAGMA_SUB(x) _Pragma (#x)
+#define DO_PRAGMA(x) PRAGMA_SUB(x)
+
 static const unsigned int INPUT_SIZE = 784;
 static const unsigned int HIDDEN_LAYER_NUM = 1;
 static const unsigned int HIDDEN1_SIZE = 25;
 static const unsigned int OUTPUT_SIZE = 10;
-static const unsigned int BATCH_SIZE = 40;
+static const unsigned int BATCH_SIZE = DEF_BATCH_SIZE;
 static const unsigned int MAX_SIZE = INPUT_SIZE;
 static const double WEIGHT_INIT_STD = 0.01;
 static const bnn_fc::ExtMemWord LEARNING_RATE = 0.01;
