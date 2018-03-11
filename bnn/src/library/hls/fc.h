@@ -118,53 +118,9 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
   affine2.Forward(relu1.out, w2, b2);
   softmaxWithLoss.Forward(affine2.out, tTrain);
   softmaxWithLoss.Backward(tTrain);
-  affine2.Backward(softmaxWithLoss.dx, relu1.out, w2);
+  affine2.Backward(softmaxWithLoss.dx, relu1.out, w2, b2);
   relu1.Backward(affine2.dx);
-  affine1.Backward(relu1.dx, xTrain);
-#if defined(HLSFIXED) && !defined(HLSNOCAST)
-  MulMemWord mulBox;
-#endif
-
-  // Update parameters
-  for (unsigned int i = 0; i < INPUT_SIZE; i++) {
-    for (unsigned int j = 0; j < HIDDEN1_SIZE; j++) {
-#pragma HLS PIPELINE II=1
-#if defined(HLSFIXED) && !defined(HLSNOCAST)
-      mulBox = static_cast<MulMemWord>(affine1.dw[i * HIDDEN1_SIZE + j]) * static_cast<MulMemWord>(LEARNING_RATE);
-      w1[i * HIDDEN1_SIZE + j] -= static_cast<IntMemWord>(mulBox);
-#else
-      w1[i * HIDDEN1_SIZE + j] -= affine1.dw[i * HIDDEN1_SIZE + j] * LEARNING_RATE;
-#endif
-      if (i == 0) {
-#if defined(HLSFIXED) && !defined(HLSNOCAST)
-        mulBox = static_cast<MulMemWord>(affine1.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
-        b1[j] -= static_cast<IntMemWord>(mulBox);
-#else
-        b1[j] -= affine1.db[j] * LEARNING_RATE;
-#endif
-      }
-    }
-  }
-
-  for (unsigned int i = 0; i < HIDDEN1_SIZE; i++) {
-    for (unsigned int j = 0; j < OUTPUT_SIZE; j++) {
-#pragma HLS PIPELINE II=1
-#if defined(HLSFIXED) && !defined(HLSNOCAST)
-      mulBox = static_cast<MulMemWord>(affine2.dw[i * OUTPUT_SIZE + j]) * static_cast<MulMemWord>(LEARNING_RATE);
-      w2[i * OUTPUT_SIZE + j] -= static_cast<IntMemWord>(mulBox);
-#else
-      w2[i * OUTPUT_SIZE + j] -= affine2.dw[i * OUTPUT_SIZE + j] * LEARNING_RATE;
-#endif
-      if (i == 0) {
-#if defined(HLSFIXED) && !defined(HLSNOCAST)
-        mulBox = static_cast<MulMemWord>(affine2.db[j]) * static_cast<MulMemWord>(LEARNING_RATE);
-        b2[j] -= static_cast<IntMemWord>(mulBox);
-#else
-        b2[j] -= affine2.dw[i * OUTPUT_SIZE + j] * LEARNING_RATE;
-#endif
-      }
-    }
-  }
+  affine1.Backward(relu1.dx, xTrain, w1, b1);
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
     out.write(static_cast<ExtMemWord>(w1[i]));

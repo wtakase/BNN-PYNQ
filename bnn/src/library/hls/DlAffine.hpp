@@ -11,8 +11,6 @@ public:
   static const unsigned int IN_SIZE = INPUT_SIZE;
   static const unsigned int OUT_SIZE = HIDDEN1_SIZE;
   IntMemWord out[BATCH_SIZE * OUT_SIZE];
-  IntMemWord dw[W1_SIZE];
-  IntMemWord db[B1_SIZE];
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
@@ -23,7 +21,7 @@ public:
 
   void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
 
-  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE]);
+  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE]);
 };
 
 class DlAffine2
@@ -33,8 +31,6 @@ public:
   static const unsigned int OUT_SIZE = OUTPUT_SIZE;
   IntMemWord out[BATCH_SIZE * OUT_SIZE];
   IntMemWord dx[BATCH_SIZE * IN_SIZE];
-  IntMemWord dw[W2_SIZE];
-  IntMemWord db[B2_SIZE];
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
   MulMemWord mulBox;
 #endif
@@ -45,7 +41,7 @@ public:
 
   void Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
 
-  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE]);
+  void Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE]);
 };
 
 #endif

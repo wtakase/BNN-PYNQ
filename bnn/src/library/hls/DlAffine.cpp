@@ -28,7 +28,7 @@ void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE
   }
 }
 
-void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE])
+void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE], IntMemWord b[B1_SIZE])
 {
   for (unsigned int i = 0; i < IN_SIZE; i++) {
     for (unsigned int j = 0; j < OUT_SIZE; j++) {
@@ -44,7 +44,7 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
         sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
 #endif
         if (k == BATCH_SIZE - 1) {
-          dw[i * OUT_SIZE + j] = sumBox1;
+          w[i * OUT_SIZE + j] -= sumBox1 * LEARNING_RATE;
         }
       }
     }
@@ -58,7 +58,7 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
       }
       sumBox2 += dout[k * OUT_SIZE + j];
       if (k == BATCH_SIZE - 1) {
-        db[j] = sumBox2;
+        b[j] -= sumBox2 * LEARNING_RATE;
       }
     }
   }
@@ -92,7 +92,7 @@ void DlAffine2::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE
   }
 }
 
-void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE])
+void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W2_SIZE], IntMemWord b[B2_SIZE])
 {
   for (unsigned int i = 0; i < BATCH_SIZE; i++) {
     for (unsigned int j = 0; j < IN_SIZE; j++) {
@@ -128,7 +128,7 @@ void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
         sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
 #endif
         if (k == BATCH_SIZE - 1) {
-          dw[i * OUT_SIZE + j] = sumBox1;
+          w[i * OUT_SIZE + j] -= sumBox1 * LEARNING_RATE;
         }
       }
     }
@@ -142,7 +142,7 @@ void DlAffine2::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
       }
       sumBox2 += dout[k * OUT_SIZE + j];
       if (k == BATCH_SIZE - 1) {
-        db[j] = sumBox2;
+        b[j] -= sumBox2 * LEARNING_RATE;
       }
     }
   }
