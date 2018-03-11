@@ -62,11 +62,12 @@ const unsigned int bitsPerExtMemWord = sizeof(ExtMemWord) * 8;
 
 #endif
 
+#define DEF_INPUT_SIZE 784
 #define DEF_BATCH_SIZE 40
 #define PRAGMA_SUB(x) _Pragma (#x)
 #define DO_PRAGMA(x) PRAGMA_SUB(x)
 
-static const unsigned int INPUT_SIZE = 784;
+static const unsigned int INPUT_SIZE = DEF_INPUT_SIZE;
 static const unsigned int HIDDEN_LAYER_NUM = 1;
 static const unsigned int HIDDEN1_SIZE = 25;
 static const unsigned int OUTPUT_SIZE = 10;
