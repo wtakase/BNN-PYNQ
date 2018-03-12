@@ -88,7 +88,8 @@ IntMemWord DlSoftmaxWithLoss::CrossEntropyError(IntMemWord t[BATCH_SIZE * SIZE])
 IntMemWord DlSoftmaxWithLoss::Forward(IntMemWord x[BATCH_SIZE * SIZE], IntMemWord t[BATCH_SIZE * SIZE])
 {
   DlSoftmaxWithLoss::SoftmaxWithLoss(x);
-  return DlSoftmaxWithLoss::CrossEntropyError(t);
+  return 0;
+  //return DlSoftmaxWithLoss::CrossEntropyError(t);
 }
 
 void DlSoftmaxWithLoss::Backward(IntMemWord t[BATCH_SIZE * SIZE])
