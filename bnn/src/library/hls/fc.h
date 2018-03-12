@@ -41,7 +41,6 @@
  *****************************************************************************/
 
 #include "DlAffine.hpp"
-#include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
 
 namespace bnn_fc
@@ -108,19 +107,16 @@ void StreamingTrain_Batch(hls::stream<ExtMemWord> &in, hls::stream<ExtMemWord> &
 
   // Create Two-layer network
   DlAffine1 affine1;
-  DlRelu1 relu1;
   DlAffine2 affine2;
   DlSoftmaxWithLoss softmaxWithLoss;
 
   // Train
   affine1.Forward(xTrain, w1, b1);
-  relu1.Forward(affine1.out);
-  affine2.Forward(relu1.out, w2, b2);
+  affine2.Forward(affine1.out, w2, b2);
   softmaxWithLoss.Forward(affine2.out, tTrain);
   softmaxWithLoss.Backward(tTrain);
-  affine2.Backward(softmaxWithLoss.dx, relu1.out, w2, b2);
-  relu1.Backward(affine2.dx);
-  affine1.Backward(relu1.dx, xTrain, w1, b1);
+  affine2.Backward(softmaxWithLoss.dx, affine1.out, w2, b2);
+  affine1.Backward(affine2.dx, xTrain, w1, b1);
 
   for (unsigned int i = 0; i < W1_SIZE; i++) {
     out.write(static_cast<ExtMemWord>(w1[i]));

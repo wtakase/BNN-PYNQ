@@ -48,7 +48,6 @@
 #include "tiny_cnn/tiny_cnn.h"
 #include "DlUtil.hpp"
 #include "DlAffine.hpp"
-#include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
 
 namespace bnn_fc

@@ -21,7 +21,12 @@ void DlAffine1::Forward(IntMemWord x[BATCH_SIZE * IN_SIZE], IntMemWord w[W1_SIZE
         sumBox1 += x[i * IN_SIZE + k] * w[k * OUT_SIZE + j];
 #endif
         if (k == IN_SIZE - 1) {
-          out[i * OUT_SIZE + j] = sumBox1;
+          // ReLU forward
+          if (sumBox1 <= 0) {
+            out[i * OUT_SIZE + j] = 0;
+          } else {
+            out[i * OUT_SIZE + j] = sumBox1;
+          }
         }
       }
     }
@@ -37,12 +42,15 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
         if (k == 0) {
           sumBox1 = 0;
         }
+        // ReLU backward
+        if (out[k * OUT_SIZE + j] != 0) {
 #if defined(HLSFIXED) && !defined(HLSNOCAST)
-        mulBox = static_cast<MulMemWord>(x[k * IN_SIZE + i]) * static_cast<MulMemWord>(dout[k * OUT_SIZE + j]);
-        sumBox1 += static_cast<IntMemWord>(mulBox);
+          mulBox = static_cast<MulMemWord>(x[k * IN_SIZE + i]) * static_cast<MulMemWord>(dout[k * OUT_SIZE + j]);
+          sumBox1 += static_cast<IntMemWord>(mulBox);
 #else
-        sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
+          sumBox1 += x[k * IN_SIZE + i] * dout[k * OUT_SIZE + j];
 #endif
+        }
         if (k == BATCH_SIZE - 1) {
           w[i * OUT_SIZE + j] -= sumBox1 * LEARNING_RATE;
         }
@@ -56,7 +64,10 @@ void DlAffine1::Backward(IntMemWord dout[BATCH_SIZE * OUT_SIZE], IntMemWord x[BA
       if (k == 0) {
         sumBox2 = 0;
       }
-      sumBox2 += dout[k * OUT_SIZE + j];
+      // ReLU backward
+      if (out[k * OUT_SIZE + j] != 0) {
+        sumBox2 += dout[k * OUT_SIZE + j];
+      }
       if (k == BATCH_SIZE - 1) {
         b[j] -= sumBox2 * LEARNING_RATE;
       }

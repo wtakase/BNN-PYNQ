@@ -48,9 +48,7 @@
 #include "tiny_cnn/tiny_cnn.h"
 #include "DlUtil.hpp"
 #include "DlAffine.hpp"
-#include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
-#include "DlTwoLayerNet.hpp"
 
 namespace bnn_double
 {

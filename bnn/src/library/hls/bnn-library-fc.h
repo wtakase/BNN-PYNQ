@@ -51,7 +51,6 @@
 #else
 
 #include "DlAffine.hpp"
-#include "DlRelu.hpp"
 #include "DlSoftmaxWithLoss.hpp"
 
 #endif 
