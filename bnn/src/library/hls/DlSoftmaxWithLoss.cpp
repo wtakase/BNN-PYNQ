@@ -6,7 +6,13 @@
 
 #include "hls_math.h"
 
+/*
 float expWrapper(float in) {
+  return hls::exp(in);
+}
+*/
+
+ap_fixed<8, 4> expWrapper(ap_fixed<8, 4> in) {
   return hls::exp(in);
 }
 
@@ -44,8 +50,9 @@ void DlSoftmaxWithLoss::SoftmaxWithLoss(IntMemWord x[BATCH_SIZE * SIZE])
     IntMemWord expXSubXmaxSum = 0;
     for (unsigned int j = 0; j < SIZE; j++) {
 #pragma HLS PIPELINE II=1
-      float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - xMax);
-      IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
+      //float xSubXMaxFloat = static_cast<float>(x[i * SIZE + j] - xMax);
+      //IntMemWord expXSubXmax = expWrapper(xSubXMaxFloat);
+      IntMemWord expXSubXmax = expWrapper(static_cast<ap_fixed<8, 4>>(x[i * SIZE + j] - xMax));
       out[i * SIZE + j] = expXSubXmax;
       expXSubXmaxSum += expXSubXmax;
     }
