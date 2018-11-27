@@ -55,7 +55,7 @@ using namespace tiny_cnn::activation;
 void makeNetwork(network<mse, adagrad> & nn) {
   nn
 #ifdef OFFLOAD
-    << offloaded_layer(28*28, 10, &FoldedMVOffload<ap_int<16>>, 0, 0)
+    << offloaded_layer(1*29, 6, &FoldedMVOffload<ap_int<16>>, 0, 0)
 #endif
   ;
 }

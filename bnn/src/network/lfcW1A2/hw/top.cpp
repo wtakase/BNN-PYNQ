@@ -120,8 +120,8 @@ void DoCompute(ap_uint<64> *in, ap_uint<64> *out, const unsigned int numReps) {
 #pragma HLS stream depth=L2_DEPTH variable=inter2
 #pragma HLS stream depth=1024 variable=memOutStrm		// mask memory latency
 
-  const unsigned int inBits = 28 * 28;
-  const unsigned int inBitsPadded = 832; // paddedSizeHW(inBits, 64)
+  const unsigned int inBits = 1 * 29;
+  const unsigned int inBitsPadded = 64;
   const unsigned int inBytesPadded = inBitsPadded / 8;
   const unsigned int outBits = 64;
   const unsigned int outBitsPadded = 64; // paddedSizeHW(outBits, 64)

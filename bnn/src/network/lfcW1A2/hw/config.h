@@ -8,17 +8,17 @@
 
 /**
  * Fully-Connected Layer L0:
- *     MatW =   832 MatH =  1024
+ *     MatW =    64 MatH =  1024
  *     SIMD =    64  PE  =    32
- *     WMEM =   416 TMEM =    32
- *     #Ops  = 1703936   Ext Latency  =   416
+ *     WMEM =    32 TMEM =    32
+ *     #Ops  = 131072   Ext Latency  =    32
 **/
 
 #define L0_SIMD 64
 #define L0_PE 32
-#define L0_WMEM 416
+#define L0_WMEM 32
 #define L0_TMEM 32
-#define L0_MW 832
+#define L0_MW 64
 #define L0_MH 1024
 #define L0_WPI 1
 #define L0_API 2
